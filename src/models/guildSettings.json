@@ -1,0 +1,17 @@
+{
+    "main": {
+        "prefix": "",
+        "mainrole": ""
+    },
+    "utility": {
+
+    },
+    "moderation": {
+        "enabled": "",
+        "modrole": ""
+    },
+    "logging": {
+        "modlogs": "",
+        "genlogs": ""
+    }
+}
