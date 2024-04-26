@@ -6,7 +6,7 @@ const {
 } = require("discord.js");
 const mongoose = require("mongoose");
 
-class RACMbot extends Client {
+class Hexalon extends Client {
   constructor() {
     super({
       allowedMentions: {
@@ -45,9 +45,6 @@ class RACMbot extends Client {
       console.log(info, "log");
     });
 
-    /**
-     *  Mongose for database
-     */
     mongoose.connect(process.env.MONGODB_URI);
     mongoose.set("strictQuery", true);
     mongoose.connection.on("connected", () => {
@@ -70,4 +67,4 @@ class RACMbot extends Client {
   }
 }
 
-module.exports = RACMbot;
+module.exports = Hexalon;

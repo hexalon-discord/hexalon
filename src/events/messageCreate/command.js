@@ -11,7 +11,6 @@ module.exports = async (client, message) => {
         aliases: ['bugsy', 'bgy'], // Customizable aliases
         prefix: ">",
         owners: config.main.owner,
-        noPerm: (message) => message.reply('ð« You have no permission to use dokdo.')
     });
 
     await Bugsy.run(message);

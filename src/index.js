@@ -1,6 +1,6 @@
 require('dotenv').config();
-const DiscoMod = require('./structures/client');
-const client = new DiscoMod();
+const Hexalon = require('./structures/client');
+const client = new Hexalon();
 client.connect(process.env.TOKEN)
 
 const { EventEmitter } = require('events');
