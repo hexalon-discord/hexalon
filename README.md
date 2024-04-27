@@ -1,2 +1,0 @@
-# hexalon
-Hexalon bot files
