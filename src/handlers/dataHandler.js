@@ -1,21 +1,19 @@
 const { } = require('discord.js')
 const fs = require('fs')
 const guildSchem = require('src/models/Guilds.json')
+const mongoose = require('mongoose')
 
 module.exports = class Data {
 
-    static getSettings(client, guild, setting, change) {
-        let data;
-        fs.readFile(`src/data/guildData/${guild.guildId}.json`, 'utf8', async (err, rawData) => {
-            if (err) {
-              console.error('Error reading JSON file:', err);
-              return;
-            }
-            const settingsData = JSON.parse(rawData);
-            const guildSchematic = require('src/models/Guilds.json')
-            console.log(settingsData, guildSchematic)
-        });
-        return data;
+    static async getSettings(client, guild, setting, change) {
+        try {
+            let data;
+            data = mongoose.idontunderstandthisshitpleasemakethisforme
+            return data;
+        } catch (error) {
+            console.error('Error getting settings:', error);
+            return null;
+        }
     } 
 
     static setSettings(client, guild, setting, change) {
