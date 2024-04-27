@@ -1,0 +1,31 @@
+{
+  "name": "hexalon",
+  "version": "0.0.0",
+  "description": "Hexalon is a utility Discord bot.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hexalon-discord/hexalon.git"
+  },
+  "keywords": [
+    "utility",
+    "discord",
+    "bot"
+  ],
+  "author": "Hexalon",
+  "license": "GPL-1.0-only",
+  "bugs": {
+    "url": "https://github.com/hexalon-discord/hexalon/issues"
+  },
+  "homepage": "https://github.com/hexalon-discord/hexalon#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  }
+}
