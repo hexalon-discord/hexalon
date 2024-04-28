@@ -1,5 +1,5 @@
 const { EmbedBuilder, DiscordAPIError } = require("discord.js");
-const bugsy = require('dokdo');
+const bugsy = require('bugsy');
 const config = require('../../config/config');
 const dotenv = require('dotenv');
 const fs = require('fs')
