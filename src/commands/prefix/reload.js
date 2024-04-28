@@ -7,7 +7,7 @@ module.exports = {
     aliases: ['rl', 'refresh'],
     description: 'Reload all commands.',
     staffOnly: true,
-    dubugType: true,
+    debugType: true,
     callback: async (message, args, client, prefix, debug) => {
         const data = [];
   let count = 0;
