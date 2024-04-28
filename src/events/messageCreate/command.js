@@ -83,7 +83,7 @@ module.exports = async (client, message) => {
       }
       fs.writeFile(filePath, JSON.stringify(fileData, null, 2), (err) => {
         if (err) {
-            console.error('An error occurred while creating the file:', err);
+          client.logger.error(`An error ocurred while creating the file: ${err}`);
             return;
         }
     });

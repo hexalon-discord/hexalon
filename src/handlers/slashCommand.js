@@ -14,14 +14,10 @@ module.exports = (client) => {
       const slashCommand = require(`../commands/slash/${dir}/${file}`);
 
       if (!slashCommand.name)
-        return console.error(
-          `slashCommandNameError: application command name is required.`
-        );
+        return client.logger.error('slashCommandError: Application command name is required');
 
       if (!slashCommand.description)
-        return console.error(
-          `slashCommandDescriptionError: application command description is required.`
-        );
+        return client.logger.error('slashCommandError: Application command description is required');
 
       client.slashCommands.set(slashCommand.name, slashCommand);
       
@@ -40,20 +36,17 @@ module.exports = (client) => {
       count++;
     }
   });
-  console.log(`Client SlashCommands Command (/) Loaded: ${count}`, "cmd");
+  client.logger.client(`Successfully loaded ${count} slash commands`)
   const rest = new REST({ version: "10" }).setToken(client.config.main.token);
   (async () => {
     try {
-      console.log("Started refreshing application (/) commands.", "cmd");
+      client.logger.client('Started reloading slash commands');
       rest.put(Routes.applicationCommands(client.config.main.id), {
         body: data,
       });
-      console.log(
-        "Successfully reloaded application (/) commands.",
-        "cmd"
-      );
+      client.logger.client('Successfully reloaded slash commands')
     } catch (error) {
-      console.error(error);
+      client.logger.error(error)
     }
   })();
 };

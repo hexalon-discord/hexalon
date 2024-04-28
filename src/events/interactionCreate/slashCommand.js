@@ -97,7 +97,7 @@ module.exports = async (client, interaction) => {
       
       fs.writeFile(filePath, fileContent, (err) => {
       if (err) {
-        console.error('An error occurred while creating the file:', err);
+        client.logger.error(`An error ocurred while creating the file: ${err}`);
         return;
       }});
       

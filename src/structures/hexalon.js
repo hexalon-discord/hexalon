@@ -38,10 +38,11 @@ const {
       this.aliases = new Collection();
       this.commands = new Collection();
       this.manager = require('../utils/manager');
+      this.logger = require('../utils/logger');
       if (!this.token) this.token = process.env.TOKEN;
   
       this.rest.on("rateLimited", (info) => {
-        console.log(info, "log");
+        this.logger.error(`Ratelimited: ${info}`);
       });
 
       ["commands", "slashCommand", "events", "errorHandler"].forEach((handler) => {

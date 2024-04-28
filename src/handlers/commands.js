@@ -17,5 +17,5 @@ module.exports = (client) => {
             }
         }
     });
-    console.log(`Client Commands Loaded ${count}`, "cmd");
+    client.logger.client(`Successfully loaded ${count} prefix commands`);
 }

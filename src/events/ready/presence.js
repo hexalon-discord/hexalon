@@ -19,9 +19,9 @@ try {
     let random = Math.floor(Math.random() * status.length);
     client.user.setActivity(status[random]);
   }, 10000);
-  console.log(`Changed ${client.user.tag} presence`, 'ready');
+  client.logger.client('Changed client presence')
 } catch (error) {
-  console.log("Error while changing presence", "error");
+  client.logger.error('An error occured while changing client presence')
 } {
 }
 };

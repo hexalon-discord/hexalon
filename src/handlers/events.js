@@ -17,4 +17,6 @@ module.exports = (client) => {
       }
     });
   }
+
+  client.logger.client('Successfully loaded all events')
 };
