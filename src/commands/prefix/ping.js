@@ -12,7 +12,6 @@ module.exports = {
     .setTitle('Hexalon latency')
     .setColor(client.config.customization.embedColor)
     .setDescription(`Pong! 🏓 \nCommand latency is ${Date.now() - message.createdTimestamp}ms. \nAPI latency is ${Math.round(client.ws.ping)}ms.`)
-    .setTimestamp();
       message.reply({embeds: [embedPing]});
     } catch (error) {
       throw error;
