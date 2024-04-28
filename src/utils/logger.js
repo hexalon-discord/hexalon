@@ -15,6 +15,6 @@ module.exports = class Logger {
     }
 
     static client(msg) {
-        console.log(chalk.white(`[CLIENT][${moment().format("DD-MM-YYYY kk:mm:ss")}]: ${msg}`));
+        console.log(chalk.green(`[CLIENT][${moment().format("DD-MM-YYYY kk:mm:ss")}]: ${msg}`));
     }
 }
