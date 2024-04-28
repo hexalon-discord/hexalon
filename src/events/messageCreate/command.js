@@ -1,5 +1,5 @@
 const { EmbedBuilder, DiscordAPIError } = require("discord.js");
-const bugsy = require('dokdo');
+const bugsy = require('bugsy');
 const config = require('../../config/config');
 const dotenv = require('dotenv');
 const fs = require('fs')
@@ -37,7 +37,7 @@ module.exports = async (client, message) => {
       .setDescription(`You do not have enough permissions to run this command, if you think this was a mistake please contact the server admin.`)
       .setFooter({text: `${client.config.branding.name}`, iconURL: client.user.displayAvatarURL({ format: 'png', size: 2048 })})
       if (
-        !message.guild.roles.cache.get(config.ranks.staff).members.some(member => member.user.id === message.author.id)
+        !client.config.main.owner === message.member.user.id
       ) {
         return message.reply({ embeds: [noPermEmbed]});
     }};
