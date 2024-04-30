@@ -17,7 +17,7 @@ module.exports = async (client, message) => {
 
     if (message.author.bot) return;
 
-    const prefix = config.main.prefix
+    const prefix = client.config.main.prefix
     const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|!)\\s*`);
     if (!prefixRegex.test(message.content)) return;
     const [matchedPrefix] = message.content.match(prefixRegex);
