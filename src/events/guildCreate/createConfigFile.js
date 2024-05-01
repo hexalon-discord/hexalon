@@ -13,7 +13,7 @@ module.exports = async (client, guild) => {
             ownerId: guild.ownerId,
         },
         setupData: {
-          staffRoles: [''],
+          modRole: '',
           managementRoles: [''],
           ignoredChannels: [''],
           moderationEnabled: true,
