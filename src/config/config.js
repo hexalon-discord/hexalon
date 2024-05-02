@@ -2,8 +2,9 @@ module.exports = {
     main: {
         token: process.env.TOKEN,
         id: "1233438779553878167",
-        prefix: "!",
-        owner: ["872110981835268096", "976538165273845830"],
+        prefix: '!',
+        owner: ["872110981835268096", "976538165273845830",'1234235636458983455'],
+        staffRole: ''
     },
     branding: {
         name: "Hexalon",
