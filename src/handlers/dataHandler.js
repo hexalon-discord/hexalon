@@ -41,19 +41,29 @@ module.exports = class DataHandler {
         try {
             return new Promise((resolve, reject) => {
                 fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
-                    console.log(5)
                     const guildFile = JSON.parse(datajson); 
-                    console.log(guildFile.moderations)
                     let totalmoder=0, each=[];
                     for (const entry of guildFile.moderations) {
-                        console.log(entry[w])
                         if (`${entry[w]}` === `${v}`) {
                             totalmoder++
                             each.push(entry)
                         }
                     }
-                    console.log(5)
                     const data = each
+                    resolve(data)});
+                })
+        } catch (err) {
+            return err;
+        }
+    }
+
+    static getTotalModerations(guild) {
+        try {
+            return new Promise((resolve, reject) => {
+                fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
+                    console.log(5)
+                    const guildFile = JSON.parse(datajson); 
+                    const data = guildFile.moderations.length
                     resolve(data)});
                 })
         } catch (err) {
