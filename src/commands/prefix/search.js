@@ -16,7 +16,20 @@ module.exports = {
         return;
       }
       const data = await client.data.getModerations(message.guild, type, value)
-      message.reply(`${JSON.stringify(data)}`)
+      const responseEmbed = new EmbedBuilder()
+      .setTitle('Search results')
+      .setColor(client.config.customization.embedColor)
+      .setDescription(`All logs matching your request:`)
+      await data.forEach(log => {
+        const caseId = log.case
+        const targetId = log.target
+        const type = log.type
+        const moderatorId = log.moderator
+        const time = log.time
+
+        responseEmbed.addFields({name: caseId, value: `Case: ${caseId} \nType: ${type} \nTarget: <@${targetId}> \nModerator: <@${moderatorId}> \nTime: <t:${time}>`});
+      })
+      message.reply({embeds: [responseEmbed]});
       console.log(data)
     } catch (error) {
       throw error;

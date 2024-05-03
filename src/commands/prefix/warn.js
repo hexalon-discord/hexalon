@@ -45,7 +45,6 @@ module.exports = {
       .setTitle(`You have been warned in ${message.guild.name}`)
       .setColor(client.config.customization.embedColor)
       .setDescription(`You have been warned by <@${message.author.id}> in ${message.guild.name} for the following reason: ${reason} \nYou now have ${total} warnings.`)
-      .setFooter({text: 'Hexalon', iconURL: client.user.displayAvatarURL({ format: 'png', size: 2048 })})
       let dmChannel = await client.users.createDM(user);
       dmChannel.send({embeds: [dmEmbed]});
     } catch(err) {
