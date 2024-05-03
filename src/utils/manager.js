@@ -33,18 +33,15 @@ module.exports = class Manager {
             memory[key] = (a[key] / 1024 / 1024).toFixed(2) + "MB";
         });
         var endMeasure = cpuAverage(); 
-        console.log(startMeasure)
-        console.log(endMeasure)
         var idleDifference = endMeasure.idle - startMeasure.idle;
         var totalDifference = endMeasure.total - startMeasure.total;
-        var CPU = 100 - ~~(100 * idleDifference / totalDifference);
+        var CPU = 1 + ~~(100 * idleDifference / totalDifference);
 
         const embedPing = new EmbedBuilder()
-        .setTitle(`Shard [${client.shard}]`)
+        .setTitle(`Shard [${message.guild.shard}]`)
         .setColor(client.config.customization.embedColor)
-        .setDescription(`Pong! 🏓\n**Latency:** \`${Math.round(client.ws.ping)}ms\`\n**Resources:**\n<:space:1235658011607961690>***RAM:*** \`${memory.rss}\`\n<:space:1235658011607961690>***CPU:*** \`${CPU}\`\n**Servers:** \`${client.guilds.cache.size}\`\n**Users:** \`${client.users.cache.size}\``)
+        .setDescription(`Pong! 🏓\n**Latency:** \`${Math.round(client.ws.ping)}ms\`\n**Resources:**\n<:space:1235658011607961690>***RAM:*** \`${memory.rss}\`\n<:space:1235658011607961690>***CPU:*** \`${CPU}%\`\n**Servers:** \`${client.guilds.cache.size}\`\n**Users:** \`${client.users.cache.size}\``)
           message.reply({embeds: [embedPing]});
-          console.log(CPU)
     }
     
     static cases() {
