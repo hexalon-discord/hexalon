@@ -39,13 +39,20 @@ module.exports = {
       const warnedEmbed = new EmbedBuilder()
       .setTitle(`Warning overview`)
       .setColor(client.config.customization.embedColor)
-      .setDescription(`You have warned <@${user}> for the following reason: ${reason}. \nThey now have ${total} moderations in this server. \nCase: ${caseNum}`)
-      message.reply({embeds: [warnedEmbed]});
       let dmEmbed = new EmbedBuilder()
       .setTitle(`You have been warned in ${message.guild.name}`)
       .setColor(client.config.customization.embedColor)
-      .setDescription(`You have been warned by <@${message.author.id}> in ${message.guild.name} for the following reason: ${reason} \nYou now have ${total} warnings.`)
+
+      if (total === 1) {
+        dmEmbed.setDescription(`You have been warned by <@${message.author.id}> in ${message.guild.name} for the following reason: ${reason} \nYou now have ${total} warning.`)
+        warnedEmbed.setDescription(`You have warned <@${user}> for the following reason: ${reason}. \nThey now have ${total} moderation in this server. \nCase: ${caseNum}`)
+      } else {
+        dmEmbed.setDescription(`You have been warned by <@${message.author.id}> in ${message.guild.name} for the following reason: ${reason} \nYou now have ${total} warnings.`)
+        warnedEmbed.setDescription(`You have warned <@${user}> for the following reason: ${reason}. \nThey now have ${total} moderations in this server. \nCase: ${caseNum}`)
+      }
+
       let dmChannel = await client.users.createDM(user);
+      message.reply({embeds: [warnedEmbed]});
       dmChannel.send({embeds: [dmEmbed]});
     } catch(err) {
       throw err
