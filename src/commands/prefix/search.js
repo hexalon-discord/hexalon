@@ -19,7 +19,10 @@ module.exports = {
       const responseEmbed = new EmbedBuilder()
       .setTitle('Search results')
       .setColor(client.config.customization.embedColor)
-      .setDescription(`All logs matching your request:`)
+
+      if (data.length === 0) {
+        responseEmbed.setDescription(`No logs were found.`)
+      }
       await data.forEach(log => {
         const caseId = log.case
         const targetId = log.target
