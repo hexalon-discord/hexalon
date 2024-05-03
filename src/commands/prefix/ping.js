@@ -8,11 +8,7 @@ module.exports = {
   debugType: true,
   callback: async (message, args, client, prefix, debug) => {
     try {
-    const embedPing = new EmbedBuilder()
-    .setTitle('Hexalon latency')
-    .setColor(client.config.customization.embedColor)
-    .setDescription(`Pong! 🏓 \nCommand latency is ${Date.now() - message.createdTimestamp}ms. \nAPI latency is ${Math.round(client.ws.ping)}ms.`)
-      message.reply({embeds: [embedPing]});
+      client.manager.ping(client, message)
     } catch (error) {
       throw error;
     }

@@ -1,7 +1,7 @@
 const fs = require('fs')
 
 module.exports = class DataHandler {
-    static makeModeration(guild, ta, ty, mo) {
+    static makeModeration(guild, ta, ty, mo, re) {
         try {
             return new Promise((resolve, reject) => {
             fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
@@ -12,7 +12,8 @@ module.exports = class DataHandler {
                     "target": `${ta}`,
                     "type": `${ty.toLowerCase()}`,
                     "moderator": `${mo}`,
-                    "time": `${Date.now()}`
+                    "time": `${Date.now()}`,
+                    "reason": `${re}`
                 }
                 guildFile.moderations.push(moder)
                 let totalmoder = 0;

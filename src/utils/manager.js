@@ -2,114 +2,64 @@ const { EmbedBuilder, ButtonInteraction, TimestampStyles, MessageComponentIntera
 const config = require("../config/config");
 const fs = require('fs');
 const path = require('path');
+const os = require('node:os');
+const { start } = require("repl");
+
+function cpuAverage() {
+    var totalIdle = 0, totalTick = 0;
+    var cpus = os.cpus();
+  
+    for(var i = 0, len = cpus.length; i < len; i++) {
+  
+      var cpu = cpus[i];
+  
+      for(type in cpu.times) {
+        totalTick += cpu.times[type];
+     }
+  
+      totalIdle += cpu.times.idle;
+    }
+  
+    return {idle: totalIdle / cpus.length,  total: totalTick / cpus.length};
+  }
 
 module.exports = class Manager {
-    static getConfigModRole (client, guildId) {
-        fs.readFile(`src/data/guilds/${guildId}/guildSettings.json`, 'utf8', (err, data) => {
-            if (err) {
-                client.logger.error(`Error reading JSON config file: ${err}`);
-                return;
-            }
-        
-            try {
-                const file = JSON.parse(data);
-                const modRole = file.setupData.modRole;
-            } catch (error) {
-                client.logger.error(`Error parsing config JSON: ${error}`);
-            }
+    static ping(client, message) {
+        var startMeasure = cpuAverage();
+        const memory = process.memoryUsage();
+        const keys = Object.keys(memory);
+        const a = memory;
+        keys.forEach((key) => {
+            memory[key] = (a[key] / 1024 / 1024).toFixed(2) + "MB";
         });
+        var endMeasure = cpuAverage(); 
+        console.log(startMeasure)
+        console.log(endMeasure)
+        var idleDifference = endMeasure.idle - startMeasure.idle;
+        var totalDifference = endMeasure.total - startMeasure.total;
+        var CPU = 100 - ~~(100 * idleDifference / totalDifference);
+
+        const embedPing = new EmbedBuilder()
+        .setTitle(`Shard [${client.shard}]`)
+        .setColor(client.config.customization.embedColor)
+        .setDescription(`Pong! 🏓\n**Latency:** \`${Math.round(client.ws.ping)}ms\`\n**Resources:**\n<:space:1235658011607961690>***RAM:*** \`${memory.rss}\`\n<:space:1235658011607961690>***CPU:*** \`${CPU}\`\n**Servers:** \`${client.guilds.cache.size}\`\n**Users:** \`${client.users.cache.size}\``)
+          message.reply({embeds: [embedPing]});
+          console.log(CPU)
+    }
+    
+    static cases() {
+        
     }
 
-    static searchTotalWarns (client, guildId, userId) {
-        return new Promise((resolve, reject) => {
-        function checkForFile(dirPath, fileName) {
-            const filePath = path.join(dirPath, fileName);
-            return fs.existsSync(filePath);
-        }
+    static warn() {
 
-        if (checkForFile(`src/data/guilds/${guildId}`, `warns_${userId}.json`)) {
-            fs.readFile(`src/data/guilds/${guildId}/warns_${userId}.json`, 'utf8', (err, data) => {
-                if (err) {
-                    client.logger.error(`Error reading warns json file: ${err}`);
-                    return;
-                }
-
-                try {
-                    const warnsData = JSON.parse(data);
-
-                    warnsData.count += 1;
-
-                    const updatedWarnsData = JSON.stringify(warnsData, null, 2);
-
-                    fs.writeFile(`src/data/guilds/${guildId}/warns_${userId}.json`, updatedWarnsData, 'utf8', (err) => {
-                        if (err) {
-                            client.logger.error(`Error writing file: ${err}`);
-                            return;
-                        }
-                        const warnCount = warnsData.count;
-                        resolve(warnCount);
-                    });
-                } catch (error) {
-                    client.logger.error(`Error parsing warns json data: ${error}`)
-                }
-            });
-        } else {
-            const newWarnsData = {
-                guildId: guildId,
-                userId: userId,
-                count: 1,
-            };
-
-            const jsonReadyWarns = JSON.stringify(newWarnsData, null, 2);
-
-            const guildDirPath = `src/data/guilds/${guildId}`;
-
-            const warnsFilePath = path.join(guildDirPath, `warns_${userId}.json`)
-
-            fs.writeFile(warnsFilePath, jsonReadyWarns, 'utf8', (err) => {
-                if (err) {
-                    client.logger.error(`Error writing warns file: ${err}`);
-                    return;
-                }
-                resolve(1);
-            });
-        }
-    })
-}
-
-static warnUser (client, guildId, userId, moderator, reason) {
-    return new Promise((resolve, reject) => {
-    let caseId = '';
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      const charactersLength = characters.length;
-      const length = 8
-      let counter = 0;
-      while (counter < length) {
-        caseId += characters.charAt(Math.floor(Math.random() * charactersLength));
-        counter += 1;
-      }
-
-    const newWarnLog = {
-        guildId: guildId,
-        userId: userId,
-        moderator: moderator,
-        reason: reason,
-        caseId: caseId
     }
 
-    const jsonWarnLog = JSON.stringify(newWarnLog, null, 2);
+    static kick() {
 
-    const guildDirPath = `src/data/guilds/${guildId}`;
+    }
+    
+    static ban() {
 
-    const warnLogFilePath = path.join(guildDirPath, `warnlog_${caseId}.json`);
-
-    fs.writeFile(warnLogFilePath, jsonWarnLog, 'utf8', (err) => {
-        if (err) {
-            client.logger.error(`Error writing warnlog file: ${err}`);
-            return;
-        }
-        resolve(caseId)
-    });
-});
-}
+    }
 }

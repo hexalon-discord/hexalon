@@ -33,7 +33,7 @@ module.exports = {
           return;
         }
       }
-      const data = await client.data.makeModeration(message.guild, user, "warn", message.author.id)
+      const data = await client.data.makeModeration(message.guild, user, "warn", message.author.id, reason)
       console.log(data)
       const total = data.total
       const caseNum = data.case
