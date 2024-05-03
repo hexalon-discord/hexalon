@@ -51,6 +51,7 @@ module.exports = async (client, message) => {
         return;
       }
 
+      console.error(error)
       let errorid = '';
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       const charactersLength = characters.length;

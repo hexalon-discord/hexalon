@@ -2,40 +2,47 @@ const fs = require('fs')
 
 module.exports = class DataHandler {
     static makeModeration(guild, ta, ty, mo, re) {
-        try {
-            return new Promise((resolve, reject) => {
-            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
-                const guildFile = JSON.parse(datajson);       
-                var curcase = guildFile.moderations.length + 1
-                const moder = {
-                    "case": `${curcase}`,
-                    "target": `${ta}`,
-                    "type": `${ty.toLowerCase()}`,
-                    "moderator": `${mo}`,
-                    "time": `${Date.now()}`,
-                    "reason": `${re}`
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err); // Reject promise if there's an error reading the file
+                    return;
                 }
-                guildFile.moderations.push(moder)
-                let totalmoder = 0;
-                for (const entry of guildFile.moderations) {
-                    if (entry.target === ta) {
-                        totalmoder++
+    
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    var curcase = guildFile.moderations.length + 1;
+                    const moder = {
+                        "case": `${curcase}`,
+                        "target": `${ta}`,
+                        "type": `${ty.toLowerCase()}`,
+                        "moderator": `${mo}`,
+                        "time": `${Date.now()}`,
+                        "reason": `${re}`
+                    };
+                    guildFile.moderations.push(moder);
+                    let totalmoder = 0;
+                    for (const entry of guildFile.moderations) {
+                        if (entry.target === ta) {
+                            totalmoder++;
+                        }
                     }
+                    const data = {
+                        "case": curcase,
+                        "total": totalmoder
+                    };
+                    fs.writeFile(`src/data/guildData/${guild.id}.json`, JSON.stringify(guildFile, null, 2), (err) => {
+                        if (err) {
+                            reject(err); // Reject promise if there's an error writing the file
+                            return;
+                        }
+                        resolve(data); // Resolve promise with data if everything is successful
+                    });
+                } catch (err) {
+                    reject(err); // Reject promise if there's an error parsing JSON or any other synchronous error
                 }
-                const data = {
-                    "case": curcase,
-                    "total": totalmoder
-                }
-                fs.writeFile(`src/data/guildData/${guild.id}.json`, JSON.stringify(guildFile, null, 2), (err) => {
-                    if (err) {
-                        console.error('Error writing file:', err);
-                    }
-                })
-                resolve(data)});
             });
-        } catch(err) {
-            return err;
-        }
+        });
     }
 
     static getModerations(guild, w, v) {
@@ -54,7 +61,7 @@ module.exports = class DataHandler {
                     resolve(data)});
                 })
         } catch (err) {
-            return err;
+            throw err;
         }
     }
 
@@ -62,13 +69,12 @@ module.exports = class DataHandler {
         try {
             return new Promise((resolve, reject) => {
                 fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
-                    console.log(5)
                     const guildFile = JSON.parse(datajson); 
                     const data = guildFile.moderations.length
                     resolve(data)});
                 })
         } catch (err) {
-            return err;
+            throw err;
         }
     }
 }

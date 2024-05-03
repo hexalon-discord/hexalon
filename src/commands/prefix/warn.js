@@ -33,29 +33,9 @@ module.exports = {
           return;
         }
       }
-      const data = await client.data.makeModeration(message.guild, user, "warn", message.author.id, reason)
-      const total = data.total
-      const caseNum = data.case
-      const warnedEmbed = new EmbedBuilder()
-      .setTitle(`Warning overview`)
-      .setColor(client.config.customization.embedColor)
-      let dmEmbed = new EmbedBuilder()
-      .setTitle(`You have been warned in ${message.guild.name}`)
-      .setColor(client.config.customization.embedColor)
-
-      if (total === 1) {
-        dmEmbed.setDescription(`You have been warned by <@${message.author.id}> in ${message.guild.name} for the following reason: ${reason} \nYou now have ${total} warning.`)
-        warnedEmbed.setDescription(`You have warned <@${user}> for the following reason: ${reason}. \nThey now have ${total} moderation in this server. \nCase: ${caseNum}`)
-      } else {
-        dmEmbed.setDescription(`You have been warned by <@${message.author.id}> in ${message.guild.name} for the following reason: ${reason} \nYou now have ${total} warnings.`)
-        warnedEmbed.setDescription(`You have warned <@${user}> for the following reason: ${reason}. \nThey now have ${total} moderations in this server. \nCase: ${caseNum}`)
-      }
-
-      let dmChannel = await client.users.createDM(user);
-      message.reply({embeds: [warnedEmbed]});
-      dmChannel.send({embeds: [dmEmbed]});
+      await client.manager.warn(client, message, user, message.author, reason)
     } catch(err) {
-      throw err
+      throw err;
     }
   }
 }

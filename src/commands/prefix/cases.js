@@ -52,8 +52,7 @@ module.exports = {
       } else {
         return;
       }
-      const data = await client.data.getModerations(message.guild, type, value)
-      message.reply(`${JSON.stringify(data)}`)
+      await client.manager.cases(client, message, message.author, type, value)
     } catch (error) {
       throw error;
     }

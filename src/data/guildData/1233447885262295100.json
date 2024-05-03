@@ -1,0 +1,101 @@
+{
+  "guildData": {
+    "name": "Hexalon Development",
+    "id": "1233447885262295100",
+    "ownerId": "976538165273845830"
+  },
+  "setupData": {
+    "staffRoles": [
+      "''"
+    ],
+    "managementRoles": [
+      "''"
+    ],
+    "ignoredChannels": [
+      "''"
+    ],
+    "moderationEnabled": true,
+    "modlogChannel": "''",
+    "requireReason": "''",
+    "showCase": true,
+    "welcomeEnabled": false,
+    "welcomechannel": "''",
+    "welcomeText": "`Welcome to our server!`"
+  },
+  "moderations": [
+    {
+      "case": "1",
+      "target": "872110981835268096",
+      "type": "ban",
+      "moderator": "976538165273845830",
+      "time": ""
+    },
+    {
+      "case": "2",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714666668543"
+    },
+    {
+      "case": "3",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714666673647"
+    },
+    {
+      "case": "4",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714668594733"
+    },
+    {
+      "case": "5",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714668745004"
+    },
+    {
+      "case": "6",
+      "target": "872110981835268096",
+      "type": "warn",
+      "moderator": "976538165273845830",
+      "time": "1714678511254"
+    },
+    {
+      "case": "7",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714679675035",
+      "reason": "loser"
+    },
+    {
+      "case": "8",
+      "target": "<@872110981835268096>",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714747811079",
+      "reason": "No reason provided."
+    },
+    {
+      "case": "9",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714747922051",
+      "reason": "No reason provided."
+    },
+    {
+      "case": "10",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714747959353",
+      "reason": "you suck"
+    }
+  ]
+}

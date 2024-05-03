@@ -24,7 +24,7 @@ function cpuAverage() {
   }
 
 module.exports = class Manager {
-    static ping(client, message) {
+    static async ping(client, message) {
         var startMeasure = cpuAverage();
         const memory = process.memoryUsage();
         const keys = Object.keys(memory);
@@ -44,19 +44,60 @@ module.exports = class Manager {
           message.reply({embeds: [embedPing]});
     }
     
-    static cases() {
-        
+    static async cases(client, interaction, user, typ, val) {
+      const data = await client.data.getModerations(interaction.guild, typ, val)
+      const responseEmbed = new EmbedBuilder()
+      .setTitle('Search results')
+      .setColor(client.config.customization.embedColor)
+
+      if (data.length === 0) {
+        responseEmbed.setDescription(`No logs were found.`)
+      }
+      await data.forEach(log => {
+        const caseId = log.case
+        const targetId = log.target
+        const type = log.type
+        const moderatorId = log.moderator
+        const time = log.time
+
+        responseEmbed.addFields({name: caseId, value: `Case: ${caseId} \nType: ${type} \nTarget: <@${targetId}> \nModerator: <@${moderatorId}> \nTime: <t:${Math.floor(time/1000)}>`});
+      })
+      interaction.reply({embeds: [responseEmbed]});
     }
 
-    static warn() {
+    static async warn(client, interaction, target, user, reason) {
+      try {
+        const data = await client.data.makeModeration(interaction.guild, target, "warn", user.id, reason)
+        const total = data.total
+        const caseNum = data.case
+        const warnedEmbed = new EmbedBuilder()
+        .setTitle(`Warning overview`)
+        .setColor(client.config.customization.embedColor)
+        let dmEmbed = new EmbedBuilder()
+        .setTitle(`You have been warned in ${interaction.guild.name}`)
+        .setColor(client.config.customization.embedColor)
 
+        if (total === 1) {
+          dmEmbed.setDescription(`You have been warned by <@${user.id}> in ${interaction.guild.name} for the following reason: ${reason} \nYou now have ${total} warning.`)
+          warnedEmbed.setDescription(`You have warned <@${target}> for the following reason: ${reason}. \nThey now have ${total} moderation in this server. \nCase: ${caseNum}`)
+        } else {
+          dmEmbed.setDescription(`You have been warned by <@${user.id}> in ${interaction.guild.name} for the following reason: ${reason} \nYou now have ${total} warnings.`)
+          warnedEmbed.setDescription(`You have warned <@${target}> for the following reason: ${reason}. \nThey now have ${total} moderations in this server. \nCase: ${caseNum}`)
+        }
+
+        let dmChannel = await client.users.createDM(target);
+        interaction.reply({embeds: [warnedEmbed]});
+        dmChannel.send({embeds: [dmEmbed]});
+      } catch(err) {
+        throw err;
+      }
     }
 
-    static kick() {
+    static async kick() {
 
     }
     
-    static ban() {
+    static async ban() {
 
     }
 }
