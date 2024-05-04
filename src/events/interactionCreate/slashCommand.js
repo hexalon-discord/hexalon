@@ -61,7 +61,7 @@ module.exports = async (client, interaction) => {
         return;
       }
       
-      console.error(error)
+      client.logger.error(error)
       let errorid = '';
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       const charactersLength = characters.length;

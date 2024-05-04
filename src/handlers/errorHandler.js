@@ -55,5 +55,5 @@ module.exports = async (client) => {
 
     });
 
-    console.log(`Successfully loaded ErrorHandler (AntiCrash)`);
+    client.logger.client(`Successfully loaded ErrorHandler (AntiCrash)`);
 };

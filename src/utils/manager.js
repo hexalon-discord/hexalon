@@ -1,9 +1,10 @@
-const { EmbedBuilder, ButtonInteraction, TimestampStyles, MessageComponentInteraction, InteractionType, Embed, Events, ButtonBuilder, ButtonStyle, ActionRowBuilder, UserContextMenuCommandInteraction, ModalBuilder, TextInputBuilder, TextInputStyle } = require("discord.js");
+const { EmbedBuilder, ButtonInteraction, TimestampStyles, MessageComponentInteraction, InteractionType, Embed, Events, ButtonBuilder, ButtonStyle, ActionRowBuilder, UserContextMenuCommandInteraction, ModalBuilder, TextInputBuilder, TextInputStyle, PermissionsBitField } = require("discord.js");
 const config = require("../config/config");
 const fs = require('fs');
 const path = require('path');
 const os = require('node:os');
 const { start } = require("repl");
+const { channel } = require("diagnostics_channel");
 
 function cpuAverage() {
     var totalIdle = 0, totalTick = 0;
@@ -120,6 +121,41 @@ module.exports = class Manager {
       }
     }
 
+    static async lock(client, i, u, c, r) {
+      try {
+        c.permissionOverwrites.set([
+          {
+            id: i.guild.id,
+            deny: PermissionsBitField.Flags.SendMessages
+          }
+        ])
+        const lockedEmbed = new EmbedBuilder()
+        .setTitle(`Channel Locked`)
+        .setColor(client.config.customization.embedColor)
+        .setDescription(`**Reason:** ${r}`)
+        c.send({embeds: [lockedEmbed]})
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    static async unlock(client, i, u, c, r) {
+      try {
+        c.permissionOverwrites.set([
+          {
+            id: i.guild.id,
+            allow: PermissionsBitField.Flags.SendMessages
+          }
+        ])
+        const unlockedEmbed = new EmbedBuilder()
+        .setTitle(`Channel Unlocked`)
+        .setColor(client.config.customization.embedColor)
+        c.send({embeds: [unlockedEmbed]})
+      } catch (err) {
+        throw err;
+      }
+    }
+
     //----------------- base -----------------\\
     static async config(client, interaction, user, args) {
       try {
@@ -182,6 +218,6 @@ module.exports = class Manager {
         }
         page++
         const sentEmbed = await interaction.reply({content: `${JSON.stringify(data)}`, embeds: [configEmbed]});
-      } catch (err) {throw err}
+      } catch (err) {throw err;}
     }
 }
