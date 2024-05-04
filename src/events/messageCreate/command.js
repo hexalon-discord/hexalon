@@ -18,7 +18,7 @@ module.exports = async (client, message) => {
     if (message.author.bot) return;
 
     const prefix = await client.data.getGuildPrefix(message.guild) || config.main.prefix
-    const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|${prefix})\\s*`);
+    const prefixRegex = new RegExp(`^(<@${client.user.id}>|\\${prefix})\\s*`);
     if (!prefixRegex.test(message.content)) return;
     const [matchedPrefix] = message.content.match(prefixRegex);
 

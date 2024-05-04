@@ -19,6 +19,7 @@ module.exports = async (client, guild) => {
             "staffRoles": [],
             "adminRoles": [],
             "requireReason": false,
+            "locked": []
           },
           "logging": {
             "modLogs": {

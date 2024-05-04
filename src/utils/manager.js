@@ -24,6 +24,8 @@ function cpuAverage() {
   }
 let page=0;
 module.exports = class Manager {
+
+    //----------------- utility -----------------\\
     static async ping(client, message) {
         var startMeasure = cpuAverage();
         const memory = process.memoryUsage();
@@ -65,6 +67,8 @@ module.exports = class Manager {
       interaction.reply({embeds: [responseEmbed]});
     }
 
+
+    //----------------- moderation -----------------\\
     static async warn(client, interaction, target, user, reason) {
       try {
         const data = await client.data.makeModeration(interaction.guild, target, "warn", user.id, reason)
@@ -100,6 +104,23 @@ module.exports = class Manager {
     static async ban() {
 
     }
+
+    static async purge(client, i, u, c) {
+      try {
+        const tD = await i.channel.messages.fetch({ limit: 100 });
+
+        const deleted = await i.channel.bulkDelete(tD.first(c))
+        const replyEmbed = new EmbedBuilder()
+        .setTitle(`Purge succesfull`)
+        .setColor(client.config.customization.embedColor)
+        .setDescription(`<:reason:1233487051144302792> **Channel:** <#${i.channel.id}>\n<:staff:1233486987433087148>**Moderator:** <@${u.id}>\n<:servers:1235655770347933857>**Fetched:** \`${tD.size}\`\n<:size:1235655774022139964>**Requested:** \`${c}\`\n**Deleted:** \`${deleted.size}\``)
+        i.channel.send({embeds: [replyEmbed]})
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    //----------------- base -----------------\\
     static async config(client, interaction, user, args) {
       try {
         if (page === 3) {

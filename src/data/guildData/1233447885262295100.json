@@ -15,7 +15,8 @@
       "adminRoles": [
         "1233498570192195648"
       ],
-      "requireReason": "true"
+      "requireReason": "true",
+      "locked": []
     },
     "logging": {
       "modLogs": {
