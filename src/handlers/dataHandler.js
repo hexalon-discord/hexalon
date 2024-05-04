@@ -5,7 +5,7 @@ module.exports = class DataHandler {
         return new Promise((resolve, reject) => {
             fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
                 if (err) {
-                    reject(err); // Reject promise if there's an error reading the file
+                    reject(err);
                     return;
                 }
     
@@ -33,48 +33,79 @@ module.exports = class DataHandler {
                     };
                     fs.writeFile(`src/data/guildData/${guild.id}.json`, JSON.stringify(guildFile, null, 2), (err) => {
                         if (err) {
-                            reject(err); // Reject promise if there's an error writing the file
+                            reject(err);
                             return;
                         }
-                        resolve(data); // Resolve promise with data if everything is successful
+                        resolve(data);
                     });
                 } catch (err) {
-                    reject(err); // Reject promise if there's an error parsing JSON or any other synchronous error
+                    reject(err);
                 }
             });
         });
     }
 
     static getModerations(guild, w, v) {
-        try {
-            return new Promise((resolve, reject) => {
-                fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
-                    const guildFile = JSON.parse(datajson); 
-                    let totalmoder=0, each=[];
-                    for (const entry of guildFile.moderations) {
-                        if (`${entry[w]}` === `${v}`) {
-                            totalmoder++
-                            each.push(entry)
-                        }
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                const guildFile = JSON.parse(datajson); 
+                let totalmoder=0, each=[];
+                for (const entry of guildFile.moderations) {
+                    if (`${entry[w]}` === `${v}`) {
+                        totalmoder++
+                        each.push(entry)
                     }
-                    const data = each
-                    resolve(data)});
-                })
-        } catch (err) {
-            throw err;
-        }
+                }
+                const data = each
+                resolve(data)
+                        
+            } catch (err) {
+                reject(err);
+                }
+            });
+        })
     }
 
     static getTotalModerations(guild) {
-        try {
-            return new Promise((resolve, reject) => {
-                fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
-                    const guildFile = JSON.parse(datajson); 
-                    const data = guildFile.moderations.length
-                    resolve(data)});
-                })
-        } catch (err) {
-            throw err;
-        }
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                const guildFile = JSON.parse(datajson); 
+                const data = guildFile.moderations.length
+                resolve(data)
+            
+                } catch (err) {
+                reject(err);
+                }
+            });
+        })
+    }
+
+    static getGuildPrefix(guild) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+    
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    const data = guildFile.config.prefix
+                        resolve(data);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
     }
 }

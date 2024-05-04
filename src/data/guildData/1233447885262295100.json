@@ -1,26 +1,38 @@
 {
-  "guildData": {
-    "name": "Hexalon Development",
-    "id": "1233447885262295100",
-    "ownerId": "976538165273845830"
+  "guildInfo": {
+    "guildName": "Hexalon Development",
+    "guildId": "1233447885262295100"
   },
-  "setupData": {
-    "staffRoles": [
-      "''"
-    ],
-    "managementRoles": [
-      "''"
-    ],
-    "ignoredChannels": [
-      "''"
-    ],
-    "moderationEnabled": true,
-    "modlogChannel": "''",
-    "requireReason": "''",
-    "showCase": true,
-    "welcomeEnabled": false,
-    "welcomechannel": "''",
-    "welcomeText": "`Welcome to our server!`"
+  "config": {
+    "prefix": "!",
+    "moderation": {
+      "enabled": false,
+      "staffRoles": [""],
+      "adminRoles": [""],
+      "requireReason": false
+    },
+    "logging": {
+      "modLogs": {
+        "enabled": false,
+        "channel": ""
+      },
+      "joinLogs": {
+        "enabled": false,
+        "channel": ""
+      },
+      "roleLogs": {
+        "enabled": false,
+        "channel": ""
+      },
+      "channelLogs": {
+        "enabled": false,
+        "channel": ""
+      },
+      "messsageLogs": {
+        "enabled": false,
+        "channel": ""
+      }
+    }
   },
   "moderations": [
     {
@@ -75,7 +87,7 @@
     },
     {
       "case": "8",
-      "target": "<@872110981835268096>",
+      "target": "872110981835268096",
       "type": "warn",
       "moderator": "872110981835268096",
       "time": "1714747811079",

@@ -1,26 +1,47 @@
 const fs = require('fs');
-path = require('path');
+const path = require('path');
 
 module.exports = async (client, guild) => {
-    fs.mkdirSync(`src/data/guilds/${guild.id}`);
     const directory = `src/data/guilds/`;
       const fileName = `${guild.id}.json`;
       const filePath = path.join(directory, fileName);
       const fileData = {
-        guildData: {
-          guildInfo: {
-            guildName: guild.name,
-            guildId: guild.id
+        "guildInfo": {
+          "guildName": guild.name,
+          "guildId": guild.id
+        },
+        "config": {
+          "prefix": "!",
+          "moderation": {
+            "enabled": false,
+            "staffRoles": [""],
+            "adminRoles": [""],
+            "requireReason": false,
           },
-          config: {
-            moderation: {
-              enabled: false,
-              staffRoles: [""],
-              adminRoles: [""],
-              require
+          "logging": {
+            "modLogs": {
+              "enabled": false,
+              "channel": ""
+            },
+            "messsageLogs": {
+              "enabled": false,
+              "channel": ""
+            },
+            "joinLogs": {
+              "enabled": false,
+              "channel": ""
+            },
+            "roleLogs": {
+              "enabled": false,
+              "channel": ""
+            },
+            "channelLogs": {
+              "enabled": false,
+              "channel": ""
             }
-          }
-        }
+          },
+        },
+        "moderations": []
       }
       fs.writeFile(filePath, JSON.stringify(fileData, null, 2), (err) => {
         if (err) {
