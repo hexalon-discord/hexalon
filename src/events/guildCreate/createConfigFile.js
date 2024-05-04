@@ -11,11 +11,13 @@ module.exports = async (client, guild) => {
           "guildId": guild.id
         },
         "config": {
-          "prefix": "!",
+          "main": {
+            "prefix": "!"
+          },
           "moderation": {
             "enabled": false,
-            "staffRoles": [""],
-            "adminRoles": [""],
+            "staffRoles": [],
+            "adminRoles": [],
             "requireReason": false,
           },
           "logging": {

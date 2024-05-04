@@ -100,8 +100,52 @@ module.exports = class DataHandler {
     
                 try {
                     const guildFile = JSON.parse(datajson);
-                    const data = guildFile.config.prefix
+                    const data = guildFile.config.main.prefix
                         resolve(data);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    }
+
+    static getGuildSettings(guild) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+    
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    const data = guildFile.config
+                        resolve(data);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    }
+
+    static setGuildSettings(guild, ns) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+    
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    guildFile.config = ns
+                    fs.writeFile(`src/data/guildData/${guild.id}.json`, JSON.stringify(guildFile, null, 2), (err) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        resolve(200);
+                    });
                 } catch (err) {
                     reject(err);
                 }

@@ -1,14 +1,14 @@
 const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 
 module.exports = {
-  name: 'ping',
-  aliases: ['latency'],
-  description: 'Get the bot\'s latency stats',
+  name: 'config',
+  aliases: ['c'],
+  description: 'Change the configurations of the bot',
   staffOnly: false,
   debugType: true,
   callback: async (message, args, client, prefix, debug) => {
     try {
-      await client.manager.ping(client, message)
+      await client.manager.config(client, message, message.user, args)
     } catch (error) {
       throw error;
     }

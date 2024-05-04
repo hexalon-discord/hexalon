@@ -4,12 +4,18 @@
     "guildId": "1233447885262295100"
   },
   "config": {
-    "prefix": "!",
+    "main": {
+      "prefix": "!"
+    },
     "moderation": {
       "enabled": false,
-      "staffRoles": [""],
-      "adminRoles": [""],
-      "requireReason": false
+      "staffRoles": [
+        "1234247559342592070"
+      ],
+      "adminRoles": [
+        "1233498570192195648"
+      ],
+      "requireReason": "true"
     },
     "logging": {
       "modLogs": {
@@ -108,6 +114,46 @@
       "moderator": "872110981835268096",
       "time": "1714747959353",
       "reason": "you suck"
+    },
+    {
+      "case": "11",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "976538165273845830",
+      "time": "1714816890007",
+      "reason": "test"
+    },
+    {
+      "case": "12",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714817137414",
+      "reason": "test"
+    },
+    {
+      "case": "13",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714817366445",
+      "reason": "tets"
+    },
+    {
+      "case": "14",
+      "target": "1234235636458983455",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714817390611",
+      "reason": "test"
+    },
+    {
+      "case": "15",
+      "target": "1233438779553878167",
+      "type": "warn",
+      "moderator": "872110981835268096",
+      "time": "1714817426946",
+      "reason": "test"
     }
   ]
 }

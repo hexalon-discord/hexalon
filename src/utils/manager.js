@@ -22,7 +22,7 @@ function cpuAverage() {
   
     return {idle: totalIdle / cpus.length,  total: totalTick / cpus.length};
   }
-
+let page=0;
 module.exports = class Manager {
     static async ping(client, message) {
         var startMeasure = cpuAverage();
@@ -99,5 +99,68 @@ module.exports = class Manager {
     
     static async ban() {
 
+    }
+    static async config(client, interaction, user, args) {
+      try {
+        if (page === 3) {
+          page = 0
+        }
+        let found = false;
+        if (args[0] && !(args[0].length <= 2)) {
+          const data = await client.data.getGuildSettings(interaction.guild)
+          findKey(data, args);
+          function findKey(obj, args) {
+            for (const key in obj) {
+              if (Array.isArray(obj[key]) && args[0] === key) {
+                obj[key].push(args[1]);
+                found = true
+                interaction.reply(`Changed the ${key} to ${obj[key]}`)
+              } else if (obj[key] instanceof Object && obj[key] !== null) {
+                findKey(obj[key], args);
+              } else if (args[0] === key) {
+                obj[key] = args[1];  
+                found = true
+                interaction.reply(`Changed the ${key} to ${obj[key]}`)
+              }
+            }
+          }
+          if (!found) {
+            interaction.reply(`Could not find \`${args[0]}\``)
+          }
+          client.data.setGuildSettings(interaction.guild, data)
+          return;
+        }
+        const data = await client.data.getGuildSettings(interaction.guild)
+        const configEmbed = new EmbedBuilder()
+        .setTitle(`${interaction.guild.name}'s configurations`)
+        .setColor(client.config.customization.embedColor)
+
+        let pages=[];
+        for (const category in data) {
+          pages.push(category)
+        }
+        for (const settingName in data[pages[page]]) {
+          const setting = data[pages[page]][settingName];
+          if (Array.isArray(setting)) {
+            let items;
+            items = setting.join(", ")
+            if (items.length <= 2) {
+              items = "None"
+            }
+            configEmbed.addFields({ name: `${settingName}`, value: `${items}` });
+          } else if (setting instanceof Object) {
+            let sSet="";
+            for (const subSettingName in setting) {
+              const subSetting = setting[subSettingName];
+              sSet = `${sSet}\n${subSettingName}: ${subSetting}`;
+            }
+            configEmbed.addFields({name: `${settingName}`, value: `${sSet}`})
+          } else {
+            configEmbed.addFields({name: `${settingName}`, value: `${setting}`})
+          }
+        }
+        page++
+        const sentEmbed = await interaction.reply({content: `${JSON.stringify(data)}`, embeds: [configEmbed]});
+      } catch (err) {throw err}
     }
 }
