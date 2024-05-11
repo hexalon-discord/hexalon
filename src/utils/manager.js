@@ -101,6 +101,11 @@ module.exports = class Manager {
     static async kick() {
 
     }
+
+    static async mute(c, i, m, t, d, r) {
+      console.log(t)
+      t.timeout(d, r)
+    }
     
     static async ban() {
 
