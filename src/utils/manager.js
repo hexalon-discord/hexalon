@@ -103,7 +103,6 @@ module.exports = class Manager {
     }
 
     static async mute(c, i, m, t, d, r) {
-      console.log(t)
       t.timeout(d, r)
     }
     

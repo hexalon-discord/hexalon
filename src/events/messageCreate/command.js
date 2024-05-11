@@ -8,7 +8,7 @@ const path = require('path')
 module.exports = async (client, message) => {
 
     const Bugsy = new bugsy.Client(client, {
-        aliases: ['bugsy', 'bgy'], // Customizable aliases
+        aliases: ['bugsy', 'bgy'],
         prefix: ">",
         owners: config.main.owner,
     });
