@@ -3,8 +3,6 @@ const config = require("../config/config");
 const fs = require('fs');
 const path = require('path');
 const os = require('node:os');
-const { start } = require("repl");
-const { channel } = require("diagnostics_channel");
 
 function cpuAverage() {
     var totalIdle = 0, totalTick = 0;
@@ -98,16 +96,22 @@ module.exports = class Manager {
       }
     }
 
-    static async kick() {
-
-    }
-
     static async mute(c, i, m, t, d, r) {
-      t.timeout(d, r)
+      try {
+        t.timeout(d, r);
+        const data = await c.data.makeModeration(i.guild, t.id, "mute", m.id, r);
+      } catch (error) {
+        throw error;
+      }
     }
-    
-    static async ban() {
 
+    static async unmute(c, i, m, t, r) {
+      try {
+        t.timeout(1, r);
+        const data = await c.data.makeModeration(i.guild, t.id, "unmute", m.id, r);
+      } catch (error) {
+        throw error;
+      }
     }
 
     static async purge(client, i, u, c) {
@@ -123,6 +127,30 @@ module.exports = class Manager {
       } catch (err) {
         throw err;
       }
+    }
+
+    static async kick() {
+
+    }
+
+    static async ban(c, i, m, t, r) {
+      t.ban();
+      const data = await c.data.makeModeration(i.guild, t, "ban", m.id, r);
+      const total = data.total
+      const caseNum = data.case
+      const warnedEmbed = new EmbedBuilder()
+      .setTitle(`Ban overview`)
+      .setColor(c.config.customization.embedColor)
+      .setDescription(`**Moderator:** <@${m.id}>\n**Target:** \`${t.user.username}#${t.user.discriminator}\`\nspace**Moderations:** \`${total}\`\nspace**Joined:** <t:${Math.floor(t.joinedTimestamp/1000)}>\n**Case:** \`${caseNum}\`\n**Reason:** ${r}`)
+      .setAuthor({name: `${t.nickname}`, iconURL: `https://cdn.discordapp.com/avatars/${t.user.id}/${t.user.avatar}.webp?format=webp&width=638&height=638`})
+      const dmEmbed = new EmbedBuilder()
+      .setTitle(`You have been banned in ${i.guild.name}`)
+      .setColor(c.config.customization.embedColor)
+      .setDescription(`You have been banned by <@${m.id}> in ${i.guild.name} for the following reason: \`${r}\`.`)
+
+      const dmChannel = await c.users.createDM(t);
+      i.reply({embeds: [warnedEmbed]});
+      dmChannel.send({embeds: [dmEmbed]});
     }
 
     static async lock(client, i, u, c, r) {
