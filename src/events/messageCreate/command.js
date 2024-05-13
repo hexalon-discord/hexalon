@@ -52,6 +52,7 @@ module.exports = async (client, message) => {
       }
 
       client.logger.error(error)
+      console.error(error)
       let errorid = '';
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       const charactersLength = characters.length;

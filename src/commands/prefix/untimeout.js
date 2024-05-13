@@ -33,9 +33,12 @@ module.exports = {
         } else {
             r = args[2];
         }
-      await client.manager.unmute(client, message, message.author, user, r)
-    } catch (error) {
-      throw error;
+      const err = await client.manager.unmute(client, message, message.author, user, r)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

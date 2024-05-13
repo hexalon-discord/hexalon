@@ -1,9 +1,9 @@
 const { EmbedBuilder, PermissionsBitField, DiscordAPIError, DiscordjsError } = require("discord.js");
 
 module.exports = {
-  name: 'ban',
+  name: 'unban',
   aliases: [],
-  description: 'Ban someone',
+  description: 'Unban someone',
   staffOnly: false,
   debugType: true,
   callback: async (message, args, client, prefix, debug) => {
@@ -18,19 +18,24 @@ module.exports = {
           message.reply("Please provide a valid user");
           return;
       }
-      let user;
-      try {
-        user = await message.guild.members.fetch(v)
-      } catch (err) {
-        message.reply("This user is not in this server");
-        return;
-      }
       if (!args[1]) {
         r = "No reason provided.";
       } else {
         r = args.slice(1).join(' ');
       }
-      const err = await client.manager.ban(client, message, message.author, user, r);
+
+      const banList = await message.guild.bans.fetch();
+      if (banList.size <1) {
+        message.reply("Did not find any bans");
+        return;
+      }
+      const obj = banList.find(entry => entry.user.id === v);
+      const user = obj.user;
+      if (!user) {
+        message.reply("This user is not banned");
+        return;
+      }
+      const err = await client.manager.unban(client, message, message.author, user, r);
       if (err instanceof Error) {
         throw err;
       }

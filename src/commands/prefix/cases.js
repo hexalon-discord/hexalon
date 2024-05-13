@@ -52,9 +52,12 @@ module.exports = {
       } else {
         return;
       }
-      await client.manager.cases(client, message, message.author, type, value)
-    } catch (error) {
-      throw error;
+      const err = await client.manager.cases(client, message, message.author, type, value)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

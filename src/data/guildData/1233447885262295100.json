@@ -315,6 +315,30 @@
       "moderator": "872110981835268096",
       "time": "1715531888414",
       "reason": "testing this function"
+    },
+    {
+      "case": "36",
+      "target": "1046820893172715652",
+      "type": "ban",
+      "moderator": "872110981835268096",
+      "time": "1715608381495",
+      "reason": "No reason provided."
+    },
+    {
+      "case": "37",
+      "target": "1046820893172715652",
+      "type": "ban",
+      "moderator": "872110981835268096",
+      "time": "1715615031864",
+      "reason": "afgujhsdfhgj gisfudhguijsdfhg fjhsgujdhsfg oifsdgsdhfg husdfhgusdfhg"
+    },
+    {
+      "case": "38",
+      "target": "1046820893172715652",
+      "type": "unban",
+      "moderator": "872110981835268096",
+      "time": "1715615291983",
+      "reason": "safhahsf shdfghsfdg fdgsdf gdsfgsfdgujhsdfg fsdghsfdjkhgjksdfhg"
     }
   ]
 }

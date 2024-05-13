@@ -50,9 +50,12 @@ module.exports = {
         } else {
             r = `${args.join(" ")}`;
         }
-      await client.manager.mute(client, message, message.author, user, d, r)
-    } catch (error) {
-      throw error;
+      const err = await client.manager.mute(client, message, message.author, user, d, r)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

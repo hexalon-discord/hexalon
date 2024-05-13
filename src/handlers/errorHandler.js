@@ -22,7 +22,7 @@ module.exports = async (client) => {
     process.on("unhandledRejection", async (reason, promise) => {
         
         console.log("[AntiCrash] | [UnhandledRejection_Logs] | [start] : ===============");
-        console.log(`${reason}\n\n${promise}`);
+        console.log(reason,promise);
         console.log("[AntiCrash] | [UnhandledRejection_Logs] | [end] : ===============");
             
     });

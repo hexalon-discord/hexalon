@@ -21,9 +21,12 @@ module.exports = {
 
         args.splice(0,1)
         const reason = args.join(" ") || "No reason provided."
-      await client.manager.unlock(client, message, message.user, channel, reason)
-    } catch (error) {
-      throw error;
+      const err = await client.manager.unlock(client, message, message.user, channel, reason)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

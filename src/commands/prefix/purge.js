@@ -18,9 +18,12 @@ module.exports = {
             return;
         }
         message.delete()
-      await client.manager.purge(client, message, message.author, count)
-    } catch (error) {
-      throw error;
+      const err = await client.manager.purge(client, message, message.author, count)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

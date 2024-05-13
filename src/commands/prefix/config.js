@@ -8,9 +8,12 @@ module.exports = {
   debugType: true,
   callback: async (message, args, client, prefix, debug) => {
     try {
-      await client.manager.config(client, message, message.user, args)
-    } catch (error) {
-      throw error;
+      const err = await client.manager.config(client, message, message.user, args)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

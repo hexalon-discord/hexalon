@@ -33,8 +33,11 @@ module.exports = {
           return;
         }
       }
-      await client.manager.warn(client, message, user, message.author, reason)
-    } catch(err) {
+      const err =await client.manager.warn(client, message, user, message.author, reason)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
       throw err;
     }
   }
