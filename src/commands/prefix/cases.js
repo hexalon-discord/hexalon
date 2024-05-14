@@ -4,7 +4,7 @@ const { isNumberObject } = require("util/types");
 
 module.exports = {
   name: 'cases',
-  aliases: [''],
+  aliases: [],
   description: 'Search cases',
   staffOnly: false,
   debugType: true,

@@ -71,35 +71,32 @@ module.exports = async (client, interaction) => {
         errorid += characters.charAt(Math.floor(Math.random() * charactersLength));
         counter += 1;
       }
-      const errorMessage = error.toString().replace(/^Error: /, '');
       const errorEmbed = new EmbedBuilder()
-      .setTitle("Error Details")
-      .setAuthor({name: `The bot expierenced an error`, iconURL: 'https://cdn.discordapp.com/emojis/1005002070782382162.webp?size=60&quality=lossless'})
+      .setAuthor({name: `The bot raised an error`, iconURL: 'https://cdn.discordapp.com/emojis/1232696750339522620.webp?size=60&quality=lossless'})
       .setColor(client.config.customization.embedColor)
       .setDescription(`The \`${command.name}\` command raised an error.\nJoin the [Hexalon Support](https://www.discord.gg/EdKqfrnZTg) server for details.\n**Error id**\n<:down_right:1194345511365390356>\`${errorid}\``)
-      .setFooter({text: `${client.config.branding.name}`, iconURL: client.user.displayAvatarURL({ format: 'png', size: 2048 })})
-      .setTimestamp()
-
-      function formatDate(date) {
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${hours}-${minutes}-${day}-${month}`;
-      }
-
-      const currentDate = formatDate(new Date());
       const directory = 'src/data/logs/';
-      const fileName = `${errorid}_${currentDate}.txt`;
+      const fileName = `err_${errorid}.json`;
       const filePath = path.join(directory, fileName);
-      const fileContent = 
-      `${error.stack}\nCommand: ${command.name} (Slash)\nChannelId: ${interaction.channel.id}\nUserId: ${interaction.user.id}\nGuildId: ${interaction.guild.id}`;
-      
-      fs.writeFile(filePath, fileContent, (err) => {
-      if (err) {
-        client.logger.error(`An error ocurred while creating the file: ${err}`);
-        return;
-      }});
+      const fileData = {
+        errorData: {
+          type: `${error.name}`,
+          error: `${error.stack}`,
+          time: `${interaction.createdTimestamp}`
+        },
+        commandData: {
+          command: `${command.name} (Prefix)`,
+          channelId: `${interaction.channel.id}`,
+          userId: `${interaction.user.id}`,
+          guildId:`${interaction.guild.id}`,
+        }
+      }
+      fs.writeFile(filePath, JSON.stringify(fileData, null, 2), (err) => {
+        if (err) {
+          client.logger.error(`An error ocurred while creating the file: ${err}`);
+            return;
+        }
+    });
       
       if (interaction.replied) {
         await interaction

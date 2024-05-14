@@ -4,7 +4,7 @@ const { readdirSync } = require("fs");
 
 module.exports = {
     name: 'reload',
-    aliases: ['rl', 'refresh'],
+    aliases: ['refresh'],
     description: 'Reload all commands.',
     staffOnly: true,
     debugType: true,

@@ -30,7 +30,7 @@ module.exports = {
       } else {
         r = args.slice(1).join(' ');
       }
-      const err = await client.manager.ban(client, message, message.author, user, r);
+      const err = await client.manager.ban(client, message, message.author, user, r, false);
       if (err instanceof Error) {
         throw err;
       }

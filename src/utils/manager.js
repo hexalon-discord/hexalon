@@ -44,126 +44,6 @@ module.exports = class Manager {
         .setDescription(`Pong! 🏓\n**Latency:** \`${Math.round(client.ws.ping)}ms\`\n**Resources:**\n<:space:1235658011607961690>***RAM:*** \`${memory.rss}\`\n<:space:1235658011607961690>***CPU:*** \`${CPU}%\`\n**Servers:** \`${client.guilds.cache.size}\`\n**Users:** \`${client.users.cache.size}\``)
           message.reply({embeds: [embedPing]});
     }
-    
-    static async cases(client, interaction, user, typ, val) {
-      let curPage=1, maxPage;
-      const data = await client.data.getModerations(interaction.guild, typ, val)
-      maxPage = Math.ceil(Number(data.length)/5);
-      const responseEmbed = new EmbedBuilder()
-      .setTitle('Search results')
-      .setColor(client.config.customization.embedColor)
-
-      const prevButton = new ButtonBuilder()
-            .setCustomId('prevPage')
-            .setEmoji({
-                name: 'tts_left_arrow',
-                id: '1194338492772270152',
-           })
-            .setStyle(ButtonStyle.Primary);
-    
-        const currentPageButton = new ButtonBuilder()
-            .setCustomId('currentPage')
-            .setLabel(`Page 1 / ${maxPage}`)
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(true);
-    
-        const nextButton = new ButtonBuilder()
-            .setCustomId('nextPage')
-            .setEmoji({
-                name: 'tts_right_arrow',
-                id: '1194338413441191976',
-           })
-            .setStyle(ButtonStyle.Primary);
-    
-        const row = new ActionRowBuilder()
-            .addComponents(prevButton, currentPageButton, nextButton);
-
-      if (data.length === 0) {
-        responseEmbed.setDescription(`No logs were found.`)
-      }
-      const selecData = Object.keys(data).slice(-4+curPage*5,curPage*5).map(key => data[key]);
-      await selecData.forEach(log => {
-        const caseId = log.case
-        const targetId = log.target
-        const type = log.type
-        const moderatorId = log.moderator
-        const time = log.time
-
-        responseEmbed.addFields({name: `${type.charAt(0).toUpperCase() + type.slice(1)} - Case ${caseId}`, value: `<:size:1235655774022139964>**Case:** \`${caseId}\` \n<:moderation:1233486994911395942>**Type:** \`${type.charAt(0).toUpperCase() + type.slice(1)}\` \n<:target:1233487058585260205>**Target:** <@${targetId}> \n<:staff:1233486987433087148>**Moderator:** <@${moderatorId}> \n<:time:1235655785204285500>**Time:** <t:${Math.floor(time/1000)}>`});
-      })
-      interaction.reply({embeds: [responseEmbed], components: [row]})
-        .then(msg => {
-          const filter = (interaction) => {
-            return interaction.isButton() && interaction.message.id === msg.id && interaction.user.id === user.id;
-          };
-          const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });     
-          collector.on('collect', (interaction) => {
-            if (interaction.customId === 'prevPage') {
-              curPage--
-              if (curPage === 0) {
-                curPage = maxPage
-              }
-              const selecData = Object.keys(data).slice(-4+curPage*5,curPage*5).map(key => data[key]);
-              const allEmbeds = interaction.message.embeds;
-              const oldEmbed = allEmbeds[0];
-              const newEmbed = new EmbedBuilder()
-              .setColor(client.config.customization.embedColor)
-              .setTitle(oldEmbed.title)
-              .setDescription(oldEmbed.description)
-              .setFooter(oldEmbed.footer)
-              .setThumbnail(oldEmbed.thumbnail)
-              .setImage(oldEmbed.image)
-              .setAuthor(oldEmbed.author)
-              selecData.forEach(log => {
-                const caseId = log.case
-                const targetId = log.target
-                const type = log.type
-                const moderatorId = log.moderator
-                const time = log.time
-        
-                newEmbed.addFields({name: caseId, value: `Case: ${caseId} \nType: ${type} \nTarget: <@${targetId}> \nModerator: <@${moderatorId}> \nTime: <t:${Math.floor(time/1000)}>`});
-              })
-              row.components[1].setLabel(`Page ${curPage} / ${maxPage}`);
-              interaction.message.edit({embeds: [newEmbed], components: [row]});
-              interaction.deferUpdate();
-            } else if (interaction.customId === 'nextPage') {
-              curPage++
-              if (curPage > maxPage) {
-                curPage = 1
-              }
-              const selecData = Object.keys(data).slice(-4+curPage*5,curPage*5).map(key => data[key]);
-              const allEmbeds = interaction.message.embeds;
-              const oldEmbed = allEmbeds[0];
-              const newEmbed = new EmbedBuilder()
-              .setColor(client.config.customization.embedColor)
-              .setTitle(oldEmbed.title)
-              .setDescription(oldEmbed.description)
-              .setFooter(oldEmbed.footer)
-              .setThumbnail(oldEmbed.thumbnail)
-              .setImage(oldEmbed.image)
-              .setAuthor(oldEmbed.author)
-              selecData.forEach(log => {
-                const caseId = log.case
-                const targetId = log.target
-                const type = log.type
-                const moderatorId = log.moderator
-                const time = log.time
-                
-                newEmbed.addFields({name: caseId, value: `Case: ${caseId} \nType: ${type} \nTarget: <@${targetId}> \nModerator: <@${moderatorId}> \nTime: <t:${Math.floor(time/1000)}>`});
-              })
-              row.components[1].setLabel(`Page ${curPage} / ${maxPage}`);
-              interaction.message.edit({embeds: [newEmbed], components: [row]});
-              interaction.deferUpdate();
-            }
-          })
-          collector.on('end', () => {
-            row.components.forEach((component) => {
-                component.setDisabled(true);
-            });
-            msg.edit({ components: [row] });
-        });
-      });
-    }
 
 
     //----------------- moderation -----------------\\
@@ -236,17 +116,22 @@ module.exports = class Manager {
       }
     }
 
-    static async ban(c, i, m, t, r) {
+    static async ban(c, i, m, t, r, h) {
       try {
-        await t.ban();
-        const data = await c.data.makeModeration(i.guild, t.user.id, "ban", m.id, r);
+        if (h) {
+          await i.guild.members.ban(t)
+        } else {
+          await t.ban();
+          t = t.user
+        }
+        const data = await c.data.makeModeration(i.guild, t.id, "ban", m.id, r);
         const total = data.total
         const caseNum = data.case
         const banEmbed = new EmbedBuilder()
         .setTitle(`Ban overview`)
         .setColor(c.config.customization.embedColor)
-        .setDescription(`<:staff:1233486987433087148>**Moderator:** <@${m.id}>\n<:target:1233487058585260205>**Target:** \`${t.user.username}#${t.user.discriminator}\` \`(${t.user.id})\`\n<:space:1235658011607961690><:moderation:1233486994911395942>**Moderations:** \`${total}\`\n<:space:1235658011607961690><:join:1233486980390584475>**Joined:** <t:${Math.floor(t.joinedTimestamp/1000)}>\n<:size:1235655774022139964>**Case:** \`${caseNum}\`\n<:reason:1233487051144302792>**Reason:** \`${r}\``)
-        .setAuthor({name: `${t.nickname || t.user.username}`, iconURL: `https://cdn.discordapp.com/avatars/${t.user.id}/${t.user.avatar}.webp?format=webp&width=638&height=638`})
+        .setDescription(`<:staff:1233486987433087148>**Moderator:** <@${m.id}>\n<:target:1233487058585260205>**Target:** \`${t.username}#${t.discriminator}\` \`(${t.id})\`\n<:size:1235655774022139964>**Case:** \`${caseNum}\`\n<:reason:1233487051144302792>**Reason:** \`${r}\``)
+        .setAuthor({name: `${t.username}`, iconURL: `https://cdn.discordapp.com/avatars/${t.id}/${t.avatar}.webp?format=webp&width=638&height=638`})
         const dmEmbed = new EmbedBuilder()
         .setTitle(`You have been banned in ${i.guild.name}`)
         .setColor(c.config.customization.embedColor)
@@ -310,6 +195,130 @@ module.exports = class Manager {
       } catch (err) {
         throw err;
       }
+    }
+
+    static async cases(client, i, user, typ, val) {
+      let curPage=1, maxPage;
+      const data = await client.data.getModerations(i.guild, typ, val)
+      maxPage = Math.ceil(Number(data.length)/5);
+      const responseEmbed = new EmbedBuilder()
+      .setTitle('Search results')
+      .setColor(client.config.customization.embedColor)
+
+      const prevButton = new ButtonBuilder()
+            .setCustomId('prevPage')
+            .setEmoji({
+                name: 'tts_left_arrow',
+                id: '1194338492772270152',
+           })
+            .setStyle(ButtonStyle.Primary);
+    
+        const currentPageButton = new ButtonBuilder()
+            .setCustomId('currentPage')
+            .setLabel(`Page 1 / ${maxPage}`)
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(true);
+    
+        const nextButton = new ButtonBuilder()
+            .setCustomId('nextPage')
+            .setEmoji({
+                name: 'tts_right_arrow',
+                id: '1194338413441191976',
+           })
+            .setStyle(ButtonStyle.Primary);
+    
+        const row = new ActionRowBuilder()
+            .addComponents(prevButton, currentPageButton, nextButton);
+
+      if (data.length === 0) {
+        responseEmbed.setDescription(`No logs were found.`)
+      }
+      const selecData = Object.keys(data).slice(-4+curPage*5,curPage*5).map(key => data[key]);
+      selecData.forEach(log => {
+        const caseId = log.case
+        const targetId = log.target
+        const type = log.type
+        const moderatorId = log.moderator
+        const time = log.time
+
+        responseEmbed.addFields({name: `${type.charAt(0).toUpperCase() + type.slice(1)} - Case ${caseId}`, value: `<:size:1235655774022139964>**Case:** \`${caseId}\` \n<:moderation:1233486994911395942>**Type:** \`${type.charAt(0).toUpperCase() + type.slice(1)}\` \n<:target:1233487058585260205>**Target:** <@${targetId}> \n<:staff:1233486987433087148>**Moderator:** <@${moderatorId}> \n<:time:1235655785204285500>**Time:** <t:${Math.floor(time/1000)}>`});
+      })
+      i.reply({embeds: [responseEmbed], components: [row]})
+      .then(msg => {
+        const filter = (interaction) => { 
+          if (interaction.isButton() && interaction.message.interaction) {
+            return interaction.isButton() && interaction.message.interaction.id === msg.interaction.id && interaction.user.id === user.id;
+          } else {
+            return interaction.isButton() && interaction.message.id === msg.id && interaction.user.id === user.id;
+          }
+        };
+          const collector = i.channel.createMessageComponentCollector({ filter, time: 60000 });     
+          collector.on('collect', (interaction) => {
+            if (interaction.customId === 'prevPage') {
+              curPage--
+              if (curPage === 0) {
+                curPage = maxPage
+              }
+              const selecData = Object.keys(data).slice(-4+curPage*5,curPage*5).map(key => data[key]);
+              const allEmbeds = interaction.message.embeds;
+              const oldEmbed = allEmbeds[0];
+              const newEmbed = new EmbedBuilder()
+              .setColor(client.config.customization.embedColor)
+              .setTitle(oldEmbed.title)
+              .setDescription(oldEmbed.description)
+              .setFooter(oldEmbed.footer)
+              .setThumbnail(oldEmbed.thumbnail)
+              .setImage(oldEmbed.image)
+              .setAuthor(oldEmbed.author)
+              selecData.forEach(log => {
+                const caseId = log.case
+                const targetId = log.target
+                const type = log.type
+                const moderatorId = log.moderator
+                const time = log.time
+        
+                newEmbed.addFields({name: `${type.charAt(0).toUpperCase() + type.slice(1)} - Case ${caseId}`, value: `<:size:1235655774022139964>**Case:** \`${caseId}\` \n<:moderation:1233486994911395942>**Type:** \`${type.charAt(0).toUpperCase() + type.slice(1)}\` \n<:target:1233487058585260205>**Target:** <@${targetId}> \n<:staff:1233486987433087148>**Moderator:** <@${moderatorId}> \n<:time:1235655785204285500>**Time:** <t:${Math.floor(time/1000)}>`});
+              })
+              row.components[1].setLabel(`Page ${curPage} / ${maxPage}`);
+              interaction.message.edit({embeds: [newEmbed], components: [row]});
+              interaction.deferUpdate();
+            } else if (interaction.customId === 'nextPage') {
+              curPage++
+              if (curPage > maxPage) {
+                curPage = 1
+              }
+              const selecData = Object.keys(data).slice(-4+curPage*5,curPage*5).map(key => data[key]);
+              const allEmbeds = interaction.message.embeds;
+              const oldEmbed = allEmbeds[0];
+              const newEmbed = new EmbedBuilder()
+              .setColor(client.config.customization.embedColor)
+              .setTitle(oldEmbed.title)
+              .setDescription(oldEmbed.description)
+              .setFooter(oldEmbed.footer)
+              .setThumbnail(oldEmbed.thumbnail)
+              .setImage(oldEmbed.image)
+              .setAuthor(oldEmbed.author)
+              selecData.forEach(log => {
+                const caseId = log.case
+                const targetId = log.target
+                const type = log.type
+                const moderatorId = log.moderator
+                const time = log.time
+                
+                newEmbed.addFields({name: `${type.charAt(0).toUpperCase() + type.slice(1)} - Case ${caseId}`, value: `<:size:1235655774022139964>**Case:** \`${caseId}\` \n<:moderation:1233486994911395942>**Type:** \`${type.charAt(0).toUpperCase() + type.slice(1)}\` \n<:target:1233487058585260205>**Target:** <@${targetId}> \n<:staff:1233486987433087148>**Moderator:** <@${moderatorId}> \n<:time:1235655785204285500>**Time:** <t:${Math.floor(time/1000)}>`});
+              })
+              row.components[1].setLabel(`Page ${curPage} / ${maxPage}`);
+              interaction.message.edit({embeds: [newEmbed], components: [row]});
+              interaction.deferUpdate();
+            }
+          })
+          collector.on('end', () => {
+            row.components.forEach((component) => {
+                component.setDisabled(true);
+            });
+            msg.edit({ components: [row] });
+        });
+      });
     }
 
     //----------------- base -----------------\\

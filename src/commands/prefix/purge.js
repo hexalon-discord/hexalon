@@ -2,7 +2,7 @@ const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 
 module.exports = {
   name: 'purge',
-  aliases: [''],
+  aliases: [],
   description: 'Bulk delete messages in a channel',
   staffOnly: false,
   debugType: true,
