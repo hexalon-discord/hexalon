@@ -40,6 +40,7 @@ const {
       this.manager = require('../utils/manager');
       this.logger = require('../utils/logger');
       this.data = require('../handlers/dataHandler')
+      this.customCommands = require('../utils/customCommands')
       if (!this.token) this.token = process.env.TOKEN;
   
       this.rest.on("rateLimited", (info) => {

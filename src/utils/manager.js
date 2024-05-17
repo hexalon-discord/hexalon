@@ -2,47 +2,35 @@ const { EmbedBuilder, ButtonInteraction, TimestampStyles, MessageComponentIntera
 const config = require("../config/config");
 const fs = require('fs');
 const path = require('path');
-const os = require('node:os');
-
-function cpuAverage() {
-    var totalIdle = 0, totalTick = 0;
-    var cpus = os.cpus();
-  
-    for(var i = 0, len = cpus.length; i < len; i++) {
-  
-      var cpu = cpus[i];
-  
-      for(type in cpu.times) {
-        totalTick += cpu.times[type];
-     }
-  
-      totalIdle += cpu.times.idle;
-    }
-  
-    return {idle: totalIdle / cpus.length,  total: totalTick / cpus.length};
-  }
+const os = require('os-utils');
 let page=0;
 module.exports = class Manager {
 
     //----------------- utility -----------------\\
     static async ping(client, message) {
-        var startMeasure = cpuAverage();
+      try {
+        const getCpuUsage = () => {
+          return new Promise((resolve) => {
+            os.cpuUsage((v) => {
+              resolve(v.toFixed(2));
+            });
+          });
+        };
+        const CPU = await getCpuUsage()
         const memory = process.memoryUsage();
         const keys = Object.keys(memory);
         const a = memory;
         keys.forEach((key) => {
             memory[key] = (a[key] / 1024 / 1024).toFixed(2) + "MB";
         });
-        var endMeasure = cpuAverage(); 
-        var idleDifference = endMeasure.idle - startMeasure.idle;
-        var totalDifference = endMeasure.total - startMeasure.total;
-        var CPU = 1 + ~~(100 * idleDifference / totalDifference);
-
         const embedPing = new EmbedBuilder()
         .setTitle(`Shard [${message.guild.shard}]`)
         .setColor(client.config.customization.embedColor)
         .setDescription(`Pong! 🏓\n**Latency:** \`${Math.round(client.ws.ping)}ms\`\n**Resources:**\n<:space:1235658011607961690>***RAM:*** \`${memory.rss}\`\n<:space:1235658011607961690>***CPU:*** \`${CPU}%\`\n**Servers:** \`${client.guilds.cache.size}\`\n**Users:** \`${client.users.cache.size}\``)
           message.reply({embeds: [embedPing]});
+      } catch (err) {
+        return err;
+      }
     }
 
 
@@ -93,16 +81,24 @@ module.exports = class Manager {
       }
     }
 
-    static async purge(client, i, u, c) {
+    static async purge(client, i, u, c, ch) {
       try {
-        const tD = await i.channel.messages.fetch({ limit: 100 });
-
+        let tD
+        if (!ch) {
+          tD = await i.channel.messages.fetch({ limit: 100 });
+        } else {
+          tD = await ch.messages.fetch({ limit: 100 });
+        }
         const deleted = await i.channel.bulkDelete(tD.first(c))
         const replyEmbed = new EmbedBuilder()
         .setTitle(`Purge succesfull`)
         .setColor(client.config.customization.embedColor)
         .setDescription(`<:reason:1233487051144302792> **Channel:** <#${i.channel.id}>\n<:staff:1233486987433087148>**Moderator:** <@${u.id}>\n<:servers:1235655770347933857>**Fetched:** \`${tD.size}\`\n<:size:1235655774022139964>**Requested:** \`${c}\`\n**Deleted:** \`${deleted.size}\``)
-        i.channel.send({embeds: [replyEmbed]})
+        if (i && i.options) {
+          i.reply({embeds: [replyEmbed], ephemeral: true})
+        } else {
+          i.channel.send({embeds: [replyEmbed]})
+        }
       } catch (err) {
         return err;
       }
@@ -176,7 +172,7 @@ module.exports = class Manager {
         .setDescription(`**Reason:** ${r}`)
         c.send({embeds: [lockedEmbed]})
       } catch (err) {
-        throw err;
+        return err;
       }
     }
 
@@ -193,11 +189,12 @@ module.exports = class Manager {
         .setColor(client.config.customization.embedColor)
         c.send({embeds: [unlockedEmbed]})
       } catch (err) {
-        throw err;
+        return err;
       }
     }
 
     static async cases(client, i, user, typ, val) {
+      try {
       let curPage=1, maxPage;
       const data = await client.data.getModerations(i.guild, typ, val)
       maxPage = Math.ceil(Number(data.length)/5);
@@ -319,6 +316,9 @@ module.exports = class Manager {
             msg.edit({ components: [row] });
         });
       });
+    } catch (err) {
+      return err;
+    }
     }
 
     //----------------- base -----------------\\
@@ -383,6 +383,6 @@ module.exports = class Manager {
         }
         page++
         const sentEmbed = await interaction.reply({content: `${JSON.stringify(data)}`, embeds: [configEmbed]});
-      } catch (err) {throw err;}
+      } catch (err) {return err;}
     }
 }

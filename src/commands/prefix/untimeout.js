@@ -24,14 +24,9 @@ module.exports = {
             return;
         }
         if (!args[1]) {
-            d = 1800000; //30mins
-        } else {
-            d = Number(`${args[1]}`);
-        }
-        if (!args[2]) {
             r = "No reason provided.";
         } else {
-            r = args[2];
+           r = args.slice(1).join(' ');
         }
       const err = await client.manager.unmute(client, message, message.author, user, r)
       if (err instanceof Error) {

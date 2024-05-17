@@ -1,20 +1,25 @@
-const { EmbedBuilder, PermissionsBitField } = require("discord.js");
+const { EmbedBuilder, PermissionsBitField, ApplicationCommandOptionType } = require("discord.js");
 
 module.exports = {
   name: 'untimeout',
-  description: 'Get the bot\'s latency stats',
+  description: 'Remove a timeout from a servermember',
   staffOnly: false,
   debugType: true,
   callback: async (client, interaction, prefix) => {
     try {
-    const embedPing = new EmbedBuilder()
-    .setTitle('Hexalon latency')
-    .setColor(client.config.customization.embedColor)
-    .setDescription(`Pong! 🏓 \nCommand latency is ${Date.now() - interaction.createdTimestamp}ms. \nAPI latency is ${Math.round(client.ws.ping)}ms.`)
-    .setTimestamp();
-      interaction.reply({embeds: [embedPing]});
-    } catch (error) {
-      throw error;
+      let v = interaction.options.getUser('user').id
+      const user = await interaction.guild.members.fetch(v);
+      if (!user) {
+        interaction.reply("Please provide a valid user");
+          return;
+      }
+      const r = interaction.options.getString('reason') || "No reason provided."
+      const err = await client.manager.unmute(client, interaction, interaction.user, user, r)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

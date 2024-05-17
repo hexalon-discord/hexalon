@@ -152,4 +152,40 @@ module.exports = class DataHandler {
             });
         });
     }
+
+    static getGuildModerationRules(guild, ns) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    const data = guildFile.config.moderation
+                    resolve(data)
+                } catch (err) {
+                    reject(err)
+                }
+            });
+        });
+    }
+
+    static getCustomCommands(guild, cc) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    const data = guildFile.customCommands.find(cmd => cmd.name === cc);
+                    resolve(data ? data : false);
+                } catch (err) {
+                    reject(err)
+                }
+            });
+        });
+    }
 }

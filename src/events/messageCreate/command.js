@@ -27,9 +27,16 @@ module.exports = async (client, message) => {
 
     const command = client.commands.get(commandName) || client.commands.find((cmd) => cmd.aliases && cmd.aliases.includes(commandName));
     
-    if (!command) return;
+    let ccd;
+    if (!command) {
+      ccd = await client.data.getCustomCommands(message.guild, commandName)
+      console.log(ccd)
+      if (!ccd) {
+        return;
+      }
+    };
 
-    if (command.staffOnly === true) {
+    if (!ccd && command.staffOnly === true) {
       const noPermEmbed = new EmbedBuilder()
       .setTitle('Insufficent permissions')
       .setAuthor({name: message.guild.name, iconURL: message.guild.iconURL({ format: 'png', size: 2048 })})
@@ -43,7 +50,17 @@ module.exports = async (client, message) => {
     }};
 
     try {
-        await command.callback(message, args, client, prefix, false)
+        if (!ccd) {
+          await command.callback(message, args, client, prefix, false)
+        } else {
+          await client.customCommands.executeCC(client, message, ccd, (err) => {
+            if (err) {
+              console.log(err)
+                throw err;
+            };
+            console.log(err)
+        });
+        }
     } catch (error) {
 
       // ===================== Check for certain errors ===================== //
@@ -63,10 +80,16 @@ module.exports = async (client, message) => {
         counter += 1;
       }
       const errorMessage = error.toString().replace(/^Error: /, '');
-      const errorEmbed = new EmbedBuilder()
+      let cn;
+      if (command && command.name) {
+        cn = "Prefix";
+      } else {
+        cn = "Custom command";
+      }
+      const errorEmbed = new EmbedBuilder()   
       .setAuthor({name: `The bot raised an error`, iconURL: 'https://cdn.discordapp.com/emojis/1232696750339522620.webp?size=60&quality=lossless'})
       .setColor(client.config.customization.embedColor)
-      .setDescription(`The \`${command.name}\` command raised an error.\nJoin the [Hexalon Support](https://www.discord.gg/EdKqfrnZTg) server for details.\n**Error id**\n<:down_right:1194345511365390356>\`${errorid}\``)
+      .setDescription(`The \`${(command?.name ?? ccd.name)}\` command raised an error.\nJoin the [Hexalon Support](https://www.discord.gg/EdKqfrnZTg) server for details.\n**Error id**\n<:down_right:1194345511365390356>\`${errorid}\``)
       const directory = 'src/data/logs/';
       const fileName = `err_${errorid}.json`;
       const filePath = path.join(directory, fileName);
@@ -77,7 +100,7 @@ module.exports = async (client, message) => {
           time: `${message.createdTimestamp}`
         },
         commandData: {
-          command: `${command.name} (Prefix)`,
+          command: `${(command?.name ?? ccd.name)} (${cn})`,
           channelId: `${message.channel.id}`,
           userId: `${message.author.id}`,
           guildId:`${message.guild.id}`,

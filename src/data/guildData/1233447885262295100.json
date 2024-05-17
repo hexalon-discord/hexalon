@@ -41,6 +41,41 @@
       }
     }
   },
+  "customCommands": [
+    {
+      "name": "name",
+      "id": "32 random characters",
+      "enabled": true,
+      "delete_trigger": false,
+      "reply": false,
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": "this is a test"
+      },
+      "embed": {
+        "color": null,
+        "title": "test tes test",
+        "url": null,
+        "author": {"name": "this is the author", "icon": null, "url": null},
+        "description": "i think im cool",
+        "fields": [
+          {"name": "name", "value": "value of this field", "inline": true},
+          {"name": "name2", "value": "value of this field", "inline": true}
+        ],
+        "thumbnail": null,
+        "image": null,
+        "footer": {"text": null, "icon": null},
+        "timestamp": true
+      }
+    }
+  ],
   "moderations": [
     {
       "case": "1",

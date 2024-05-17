@@ -27,7 +27,7 @@ module.exports = {
   debugType: true,
   callback: async (client, interaction, prefix) => {
     try {
-      let v, u, d, r, h;
+      let v, u, d, h;
       if (interaction.options.getBoolean('hack-ban')) {
         u = interaction.options.getUser('user')
         try {
@@ -53,11 +53,7 @@ module.exports = {
         }
         h = false
       }
-      if (interaction.options.getString('reason') === null) {
-        r = "No reason provided.";
-      } else {
-        r = interaction.options.getString('reason')
-      }
+      let r = interaction.options.getString('reason') || "No reason provided.";
       const err = await client.manager.ban(client, interaction, interaction.user, u, r, h);
       if (err instanceof Error) {
         throw err;

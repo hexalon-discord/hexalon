@@ -99,17 +99,16 @@ module.exports = async (client, interaction) => {
     });
       
       if (interaction.replied) {
-        await interaction
-          .editReply({
+          await interaction.channel.send({
             embeds: [errorEmbed],
           })
           .catch(() => {});
       } else {
-        await interaction
-          .reply({
-            embeds: [errorEmbed],
-          })
-          .catch(() => {});
+        if (interaction.deferred){interaction.deleteReply()};
+        await interaction.channel.send({
+          embeds: [errorEmbed],
+        })
+        .catch(() => {});
       }
     };
 }

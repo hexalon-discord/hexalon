@@ -2,19 +2,17 @@ const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 
 module.exports = {
   name: 'config',
-  description: 'Get the bot\'s latency stats',
+  description: 'Get the config of this server',
   staffOnly: false,
   debugType: true,
   callback: async (client, interaction, prefix) => {
     try {
-    const embedPing = new EmbedBuilder()
-    .setTitle('Hexalon latency')
-    .setColor(client.config.customization.embedColor)
-    .setDescription(`Pong! 🏓 \nCommand latency is ${Date.now() - interaction.createdTimestamp}ms. \nAPI latency is ${Math.round(client.ws.ping)}ms.`)
-    .setTimestamp();
-      interaction.reply({embeds: [embedPing]});
-    } catch (error) {
-      throw error;
+      const err = await client.manager.config(client, interaction, interaction.user, args)
+      if (err instanceof Error) {
+        throw err;
+      }
+    } catch (err) {
+      throw err;
     }
   }
 }

@@ -2,7 +2,7 @@ const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 
 module.exports = {
   name: 'kick',
-  description: 'Get the bot\'s latency stats',
+  description: 'Kick a server member',
   staffOnly: false,
   debugType: true,
   callback: async (client, interaction, prefix) => {
