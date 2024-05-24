@@ -9,8 +9,6 @@ const fs = require('fs')
 const moduleName = 'bugsy';
 const destination = path.join('./node_modules', moduleName);
 
-client.connect(process.env.TOKEN)
-
 if (fs.existsSync(destination)) {
     client.logger.warn(`Directory ${destination} already exists. Deleting...`);
     fs.rm(destination, { recursive: true }, (err) => {
@@ -25,10 +23,10 @@ if (fs.existsSync(destination)) {
     cloneRepository();
   }
   
-  function cloneRepository() {
+  async function cloneRepository() {
     const cloneCommand = `git clone https://github.com/hexalon-discord/bugsy.git ${destination}`;
   
-    exec(cloneCommand, (error, stdout, stderr) => {
+    await exec(cloneCommand, (error, stdout, stderr) => {
       if (error) {
         client.logger.err(`Error cloning repository: ${error}`);
         return;
@@ -37,4 +35,5 @@ if (fs.existsSync(destination)) {
     });
 }
 
+client.connect(process.env.TOKEN)
 client.setMaxListeners(100)

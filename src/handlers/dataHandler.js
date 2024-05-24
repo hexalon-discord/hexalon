@@ -171,7 +171,7 @@ module.exports = class DataHandler {
         });
     }
 
-    static getCustomCommands(guild, cc) {
+    static getCustomCommand(guild, cc) {
         return new Promise((resolve, reject) => {
             fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
                 if (err) {
@@ -181,6 +181,24 @@ module.exports = class DataHandler {
                 try {
                     const guildFile = JSON.parse(datajson);
                     const data = guildFile.customCommands.find(cmd => cmd.name === cc);
+                    resolve(data ? data : false);
+                } catch (err) {
+                    reject(err)
+                }
+            });
+        });
+    }
+
+    static getAllCustomCommands(guild) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    const data = guildFile.customCommands
                     resolve(data ? data : false);
                 } catch (err) {
                     reject(err)

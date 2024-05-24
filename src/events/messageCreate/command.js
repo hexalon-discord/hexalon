@@ -29,7 +29,7 @@ module.exports = async (client, message) => {
     
     let ccd;
     if (!command) {
-      ccd = await client.data.getCustomCommands(message.guild, commandName)
+      ccd = await client.data.getCustomCommand(message.guild, commandName)
       console.log(ccd)
       if (!ccd) {
         return;

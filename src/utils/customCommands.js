@@ -4,7 +4,6 @@ module.exports = class CustomCommands {
   static executeCC(c, msg, ccd, cb) {
     console.log("recieved")
     try {
-      throw Error("test error")
       console.log("start")
       const ignoredChannels = ccd.ignore.channels
       const ignoredRoles = ccd.ignore.roles
@@ -58,7 +57,7 @@ module.exports = class CustomCommands {
       if (ccd.embed.image !== null){embed.setImage(ccd.embed.image)};
       if (ccd.embed.footer.text !== null){embed.setFooter({text: ccd.embed.footer.text, iconURL: ccd.embed.footer.icon})};
       if (ccd.embed.timestamp !== false){embed.setTimestamp()};
-      if (ccd.reply) {
+      if (ccd.reply.dreply) {
         if (embed.data.size !== 0) {
           msg.reply({content: ccd.message.content, embeds: [embed]});
         } else {
