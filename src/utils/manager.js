@@ -10,6 +10,7 @@ const {
   ModalBuilder,
   RoleSelectMenuBuilder,
   ChannelSelectMenuBuilder,
+  DiscordAPIError,
 } = require("discord.js");
 const config = require("../config/config");
 const fs = require("fs");
@@ -309,7 +310,7 @@ module.exports = class Manager {
           new StringSelectMenuOptionBuilder()
             .setLabel("Ignore Channel")
             .setDescription("Channels that should be ignored")
-            .setValue("igchannel"),
+            .setValue("igchannels"),
           new StringSelectMenuOptionBuilder()
             .setLabel("Require Roles")
             .setDescription("Roles that should be required")
@@ -317,10 +318,10 @@ module.exports = class Manager {
           new StringSelectMenuOptionBuilder()
             .setLabel("Required Channel")
             .setDescription("Channels that should be Required")
-            .setValue("rqchannel")
+            .setValue("rqchannels")
         );
       const cb = new ButtonBuilder()
-        .setCustomId("crbut")
+        .setCustomId("createbut")
         .setEmoji(`➕`)
         .setLabel(`Create`)
         .setStyle(ButtonStyle.Success);
@@ -376,7 +377,7 @@ module.exports = class Manager {
       const replyPromise = new Promise((resolve, reject) => {
         i.reply({ content: "_ _", components: [rowBut] })
           .then((msg) => {
-            let collector;
+            let collector, em, ms, deb;
             function createMsgCompent() {
               try {
                 const filter = (interaction) => {
@@ -500,7 +501,7 @@ module.exports = class Manager {
                             );
                           }
                           r.delete();
-                          collector2.stop();
+                          collector2.stop()
                         });
 
                         break;
@@ -536,8 +537,6 @@ module.exports = class Manager {
                           .then(() => {
                             createMsgCompent();
                           });
-                        s = true;
-                        collector.stop();
                         interaction.deferUpdate();
                         return;
                       case "footer":
@@ -776,19 +775,17 @@ module.exports = class Manager {
                           createMsgCompent();
                         });
                       submitted.deferUpdate();
-                      s = true;
-                      collector.stop();
-                      resolve();
                     }
+                    s = true;
+                    collector.stop();
                   } catch (err) {
                     reject(err);
                   }
                 });
                 collector.on("end", () => {
                   if (!s) {
-                    msg.edit({ components: [] });
-                    collectorBut.stop();
-                    resolve();
+                    msg.edit({ components: [rowBut] });
+                    return;
                   } else {
                     s = false;
                   }
@@ -797,355 +794,508 @@ module.exports = class Manager {
                 throw err;
               }
             }
-            const filterBut = (interaction) => {
-              if (interaction.isButton() && interaction.message.interaction) {
-                return (
-                  interaction.isButton() &&
-                  interaction.message.interaction.id === msg.interaction.id &&
-                  interaction.user.id === u.id
-                );
-              } else {
-                return (
-                  interaction.isButton() &&
-                  interaction.message.id === msg.id &&
-                  interaction.user.id === u.id
-                );
-              }
-            };
-            const collectorBut = i.channel.createMessageComponentCollector({
-              filterBut,
-              time: 1800000,
-            });
-            collectorBut.on("collect", async (interaction) => {
-              try {
-                if (interaction.customId === "delbut") {
-                  if (collector) {
-                    collector.stop();
-                  }
-                  interaction.reply(
-                    "Cancelled the making of a new custom command"
+            function createButCompent() {
+              console.log(1, "buttons")
+              const filterBut = (interaction) => {
+                if (interaction.isButton() && interaction.message.interaction) {
+                  return (
+                    interaction.isButton() &&
+                    interaction.message.interaction.id === msg.interaction.id &&
+                    interaction.user.id === u.id
                   );
-                } else if (interaction.customId === "crbut") {
-                  if (collector) {
-                    collector.stop();
-                  }
-                  interaction.reply("Made a new custom command");
-                  const er = await c.data.createCustomCommand(i.guild, q);
-                  if (er) {
-                    reject(er);
-                  }
-                } else if (interaction.customId === "setbut") {
-                  async function createSetCompent(interaction, u) {
-                    try {
-                      const setrow = new ActionRowBuilder().addComponents(
-                        setSel
-                      );
-                      const r = await interaction.reply({
-                        components: [setrow],
-                        ephemeral: true,
-                      });
-                      const filter2 = (i) =>
-                        i.user.id === u.id &&
-                        i.customId === "setting" &&
-                        interaction.message.interaction.id ===
-                          msg.interaction.id;
-                      const collector2 =
-                        interaction.channel.createMessageComponentCollector({
-                          filter2,
-                          time: 120000,
-                        });
-                      collector2.on("collect", async (interaction) => {
-                        try {
-                          switch (interaction.values[0]) {
-                            case "name":
-                              try {
-                                const fields = {
-                                  name: new TextInputBuilder()
-                                    .setCustomId(`${interaction.values[0]}`)
-                                    .setLabel(`The ${interaction.values[0]}`)
-                                    .setStyle(1)
-                                    .setRequired(true),
-                                };
-                                const modal = new ModalBuilder()
-                                  .setCustomId(`${interaction.values[0]}Modal`)
-                                  .setTitle(
-                                    `Customcommand: ${
-                                      interaction.values[0]
-                                        .charAt(0)
-                                        .toUpperCase() +
-                                      interaction.values[0].slice(1)
-                                    }`
-                                  );
-                                const modalrow =
-                                  new ActionRowBuilder().addComponents(
-                                    fields.name
-                                  );
-                                modal.setComponents(modalrow);
-
-                                try {
-                                  await interaction.showModal(modal);
-                                } catch (err) {
-                                  throw err;
-                                }
-                                const submitted = await interaction
-                                  .awaitModalSubmit({
-                                    time: 60000,
-                                    filter: (i) =>
-                                      i.user.id === interaction.user.id,
-                                  })
-                                  .catch((err) => {
-                                    throw err;
-                                  });
-                                const oldn = q.main.name;
-                                q.main.name =
-                                  submitted.fields.getTextInputValue("name");
-                                submitted.reply({
-                                  content: `Changed the name from \`${oldn}\` to \`${q.main.name}\``,
-                                  ephemeral: true,
-                                });
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "enabled":
-                              try {
-                                if (q.main.enabled === true) {
-                                  q.main.enabled = false;
-                                } else {
-                                  q.main.enabled = true;
-                                }
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "delete_trigger":
-                              try {
-                                if (q.main.delete_trigger === true) {
-                                  q.main.delete_trigger = false;
-                                } else {
-                                  q.main.delete_trigger = true;
-                                }
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "dreply":
-                              try {
-                                if (q.main.reply.dreply === true) {
-                                  q.main.reply.dreply = false;
-                                } else {
-                                  q.main.reply.dreply = true;
-                                }
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "replychannel":
-                              try {
-                                const rcroleSel = new ChannelSelectMenuBuilder()
-                                  .setCustomId("rolesSelect")
-                                  .setMaxValues(1)
-                                  .setMinValues(1)
-                                  .setDefaultChannels(q.main.reply.channel);
-                                const rcrow =
-                                  new ActionRowBuilder().addComponents(
-                                    rcroleSel
-                                  );
-                                const rco = await interaction.reply({
-                                  components: [rcrow],
-                                  ephemeral: true,
-                                });
-                                const igfilter2 = (i) =>
-                                  i.user.id === u.id &&
-                                  i.customId === "rolesSelect" &&
-                                  interaction.message.interaction.id ===
-                                    msg.interaction.id;
-                                const rccollector2 =
-                                  interaction.channel.createMessageComponentCollector(
-                                    {
-                                      igfilter2,
-                                      time: 120000,
-                                    }
-                                  );
-
-                                rccollector2.on(
-                                  "collect",
-                                  async (interaction) => {
-                                    q.main.ignore.roles = interaction.values;
-                                    interaction.deferUpdate();
-                                    collector2.stop();
-                                    rco.delete();
-                                  }
-                                );
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "igroles":
-                              try {
-                                const igroleSel = new RoleSelectMenuBuilder()
-                                  .setCustomId("rolesSelect")
-                                  .setMaxValues(10)
-                                  .setDefaultRoles(q.main.ignore.roles);
-                                const igrow =
-                                  new ActionRowBuilder().addComponents(
-                                    igroleSel
-                                  );
-                                const igo = await interaction.reply({
-                                  components: [igrow],
-                                  ephemeral: true,
-                                });
-                                const igfilter2 = (i) =>
-                                  i.user.id === u.id &&
-                                  i.customId === "rolesSelect" &&
-                                  interaction.message.interaction.id ===
-                                    msg.interaction.id;
-                                const igcollector2 =
-                                  interaction.channel.createMessageComponentCollector(
-                                    {
-                                      igfilter2,
-                                      time: 120000,
-                                    }
-                                  );
-
-                                igcollector2.on(
-                                  "collect",
-                                  async (interaction) => {
-                                    q.main.ignore.roles = interaction.values;
-                                    interaction.deferUpdate();
-                                    collector2.stop();
-                                    igo.delete();
-                                  }
-                                );
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "igchannels":
-                              try {
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "rqroles":
-                              try {
-                                const rqroleSel = new RoleSelectMenuBuilder()
-                                  .setCustomId("rolesSelect")
-                                  .setMaxValues(10)
-                                  .setDefaultRoles(q.main.require.roles);
-                                const rqrow =
-                                  new ActionRowBuilder().addComponents(
-                                    rqroleSel
-                                  );
-                                const rqo = await interaction.reply({
-                                  components: [rqrow],
-                                  ephemeral: true,
-                                });
-                                const rqfilter2 = (i) =>
-                                  i.user.id === u.id &&
-                                  i.customId === "rolesSelect" &&
-                                  interaction.message.interaction.id ===
-                                    msg.interaction.id;
-                                const rqcollector2 =
-                                  interaction.channel.createMessageComponentCollector(
-                                    {
-                                      rqfilter2,
-                                      time: 120000,
-                                    }
-                                  );
-
-                                rqcollector2.on(
-                                  "collect",
-                                  async (interaction) => {
-                                    q.main.require.roles = interaction.values;
-                                    interaction.deferUpdate();
-                                    rqcollector2.stop();
-                                    rqo.delete();
-                                  }
-                                );
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                            case "rqchannels":
-                              try {
-                              } catch (err) {
-                                reject(err);
-                              }
-                              break;
-                          }
-                          r.delete();
-                          collector2.stop();
-                        } catch (err) {
-                          reject(err);
-                        }
-                      });
-                    } catch (err) {
-                      throw err;
-                    }
-                  }
-                  createSetCompent(interaction, u);
-                } else if (interaction.customId === "embbut") {
-                  msg.edit({
-                    content: msg.content,
-                    embeds: [re],
-                    components: [row, rowBut2],
-                  });
-                  createMsgCompent();
-                  interaction.deferUpdate();
-                } else if (interaction.customId === "delembbut") {
-                  msg.edit({
-                    content: msg.content,
-                    embeds: [],
-                    components: [rowBut],
-                  });
-                  createMsgCompent();
-                  interaction.deferUpdate();
-                } else if (interaction.customId === "msgbut") {
-                  const fields = {
-                    content: new TextInputBuilder()
-                      .setCustomId(`content`)
-                      .setLabel(`The content of the message`)
-                      .setStyle(2)
-                      .setRequired(true),
-                  };
-                  const modal = new ModalBuilder()
-                    .setCustomId(`contentModal`)
-                    .setTitle(`Message content`);
-                  const modalrow = new ActionRowBuilder().addComponents(
-                    fields.content
+                } else {
+                  return (
+                    interaction.isButton() &&
+                    interaction.message.id === msg.id &&
+                    interaction.user.id === u.id
                   );
-                  modal.setComponents(modalrow);
-
-                  try {
-                    await interaction.showModal(modal);
-                  } catch (err) {
-                    throw err;
-                  }
-                  let submitted = await interaction
-                    .awaitModalSubmit({
-                      time: 60000,
-                      filter: (i) => i.user.id === interaction.user.id,
-                    })
-                    .catch((err) => {
-                      throw err;
-                    });
-                  if (!submitted) {
-                    return;
-                  }
-                  msg.edit({
-                    content: submitted.fields.getTextInputValue("content"),
-                    embeds: msg.embeds,
-                    components: msg.components,
-                  });
-                  (q.message.content =
-                    submitted.fields.getTextInputValue("content")),
-                    submitted.deferUpdate();
                 }
-              } catch (err) {
-                reject(err);
-              }
-            });
+              };
+              const collectorBut = i.channel.createMessageComponentCollector({
+                filterBut,
+                time: 1800000,
+              });
+              collectorBut.on("collect", async (butInteraction) => {
+                try {
+                  if (!deb) {
+                    deb = true;
+                    ms = true;
+                    collectorBut.stop();
+                    if (butInteraction.customId === "delbut") {
+                      if (collector) {
+                        collector.stop();
+                        collectorBut.stop();
+                      }
+                      butInteraction.reply(
+                        "Cancelled the making of a new custom command"
+                      );
+                    } else if (butInteraction.customId === "createbut") {
+                      if (collector) {
+                        collector.stop();
+                      }
+                      butInteraction.reply("Made a new custom command");
+                      const er = await c.data.createCustomCommand(butInteraction.guild, q);
+                      if (er) {
+                        reject(er);
+                      }
+                    } else if (butInteraction.customId === "setbut") {
+                      async function createSetCompent(interaction, u) {
+                        try {
+                          em = true;
+                          const setrow = new ActionRowBuilder().addComponents(
+                            setSel
+                          );
+                          let r;
+                          try {
+                            r = await interaction.reply({
+                              components: [setrow],
+                              ephemeral: true,
+                            });
+                          } catch (err) {
+                            if (
+                              err instanceof DiscordAPIError &&
+                              err.code === 10062
+                            ) {
+                              return;
+                            }
+                          }
+                          const filter2 = (i) =>
+                            i.user.id === u.id &&
+                            i.customId === "setting" &&
+                            interaction.message.interaction.id ===
+                              msg.interaction.id;
+                          const collector2 =
+                            interaction.channel.createMessageComponentCollector(
+                              {
+                                filter2,
+                                time: 120000,
+                              }
+                            );
+                          collector2.on("collect", async (interaction) => {
+                            try {
+                              switch (interaction.values[0]) {
+                                case "name":
+                                  try {
+                                    const fields = {
+                                      name: new TextInputBuilder()
+                                        .setCustomId(`${interaction.values[0]}`)
+                                        .setLabel(
+                                          `The ${interaction.values[0]}`
+                                        )
+                                        .setStyle(1)
+                                        .setRequired(true),
+                                    };
+                                    const modal = new ModalBuilder()
+                                      .setCustomId(
+                                        `${interaction.values[0]}Modal`
+                                      )
+                                      .setTitle(
+                                        `Customcommand: ${
+                                          interaction.values[0]
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                          interaction.values[0].slice(1)
+                                        }`
+                                      );
+                                    const modalrow =
+                                      new ActionRowBuilder().addComponents(
+                                        fields.name
+                                      );
+                                    modal.setComponents(modalrow);
+
+                                    try {
+                                      await interaction.showModal(modal);
+                                    } catch (err) {
+                                      throw err;
+                                    }
+                                    const submitted = await interaction
+                                      .awaitModalSubmit({
+                                        time: 60000,
+                                        filter: (i) =>
+                                          i.user.id === interaction.user.id,
+                                      })
+                                      .catch((err) => {
+                                        throw err;
+                                      });
+                                    const oldn = q.main.name;
+                                    q.main.name =
+                                      submitted.fields.getTextInputValue(
+                                        "name"
+                                      );
+                                    submitted.reply({
+                                      content: `Changed the name from \`${oldn}\` to \`${q.main.name}\``,
+                                      ephemeral: true,
+                                    });
+                                    createButCompent();
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  break;
+                                case "enabled":
+                                  try {
+                                    if (q.main.enabled === true) {
+                                      q.main.enabled = false;
+                                      interaction.reply({
+                                        content: `Set the command as \`disabled\``,
+                                        ephemeral: true,
+                                      });
+                                    } else {
+                                      q.main.enabled = true;
+                                      interaction.reply({
+                                        content: `Set the command as \`enabled\``,
+                                        ephemeral: true,
+                                      });
+                                    }
+                                    createButCompent();
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  createButCompent();
+                                  break;
+                                case "delete_trigger":
+                                  try {
+                                    if (q.main.delete_trigger === true) {
+                                      q.main.delete_trigger = false;
+                                      interaction.reply({
+                                        content: `Set the Delete Trigger as \`disabled\``,
+                                        ephemeral: true,
+                                      });
+                                    } else {
+                                      q.main.delete_trigger = true;
+                                      interaction.reply({
+                                        content: `Set the Delete Trigger as \`enabled\``,
+                                        ephemeral: true,
+                                      });
+                                    }
+                                    createButCompent();
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  createButCompent();
+                                  break;
+                                case "dreply":
+                                  try {
+                                    if (q.main.reply.dreply === true) {
+                                      q.main.reply.dreply = false;
+                                      interaction.reply({
+                                        content: `Set the Reply to trigger as \`disabled\``,
+                                        ephemeral: true,
+                                      });
+                                    } else {
+                                      q.main.reply.dreply = true;
+                                      interaction.reply({
+                                        content: `Set the Reply to trigger as \`enabled\``,
+                                        ephemeral: true,
+                                      });
+                                    }
+                                    createButCompent();
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  break;
+                                case "replychannel":
+                                  try {
+                                    const rcroleSel =
+                                      new ChannelSelectMenuBuilder()
+                                        .setCustomId("chanSelect")
+                                        .setMaxValues(1)
+                                        .setMinValues(1)
+                                        .setDefaultChannels(
+                                          q.main.reply.channel
+                                        );
+                                    const rcrow =
+                                      new ActionRowBuilder().addComponents(
+                                        rcroleSel
+                                      );
+                                    const rco = await interaction.reply({
+                                      components: [rcrow],
+                                      ephemeral: true,
+                                    });
+                                    const igfilter2 = (i) =>
+                                      i.user.id === u.id &&
+                                      i.customId === "chanSelect" &&
+                                      interaction.message.interaction.id ===
+                                        msg.interaction.id;
+                                    const rccollector2 =
+                                      interaction.channel.createMessageComponentCollector(
+                                        {
+                                          igfilter2,
+                                          time: 120000,
+                                        }
+                                      );
+
+                                    rccollector2.on(
+                                      "collect",
+                                      async (interaction) => {
+                                        q.main.reply.channel =
+                                          interaction.values;
+                                        rccollector2.stop();
+                                        rco.delete();
+                                        let content = `Set the command to reply in<#${q.main.reply.channel}>`;
+                                        interaction.reply({
+                                          content: content,
+                                          ephemeral: true,
+                                        });
+                                        createButCompent();
+                                      }
+                                    );
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  break;
+                                case "igroles":
+                                  try {
+                                    const igroleSel =
+                                      new RoleSelectMenuBuilder()
+                                        .setCustomId("rolesSelect")
+                                        .setMaxValues(10)
+                                        .setDefaultRoles(q.main.ignore.roles);
+                                    const igrow =
+                                      new ActionRowBuilder().addComponents(
+                                        igroleSel
+                                      );
+                                    const igo = await interaction.reply({
+                                      components: [igrow],
+                                      ephemeral: true,
+                                    });
+                                    const igfilter2 = (i) =>
+                                      i.user.id === u.id &&
+                                      i.customId === "rolesSelect" &&
+                                      interaction.message.interaction.id ===
+                                        msg.interaction.id;
+                                    const igcollector2 =
+                                      interaction.channel.createMessageComponentCollector(
+                                        {
+                                          igfilter2,
+                                          time: 120000,
+                                        }
+                                      );
+
+                                    igcollector2.on(
+                                      "collect",
+                                      async (interaction) => {
+                                        q.main.ignore.roles =
+                                          interaction.values;
+                                        let content = `Set the command to ignore`;
+                                        q.main.ignore.roles.forEach((chan) => {
+                                          content += ` <@&${chan}>`;
+                                        });
+                                        interaction.reply({
+                                          content: content,
+                                          ephemeral: true,
+                                        });
+                                        igcollector2.stop();
+                                        igo.delete();
+                                        createButCompent();
+                                      }
+                                    );
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  break;
+                                case "igchannels":
+                                  try {
+                                    const rcroleSel =
+                                      new ChannelSelectMenuBuilder()
+                                        .setCustomId("chanSelect")
+                                        .setMaxValues(10)
+                                        .setMinValues(0)
+                                        .setDefaultChannels(
+                                          q.main.ignore.channels
+                                        );
+                                    const rcrow =
+                                      new ActionRowBuilder().addComponents(
+                                        rcroleSel
+                                      );
+                                    const rco = await interaction.reply({
+                                      components: [rcrow],
+                                      ephemeral: true,
+                                    });
+                                    const igfilter2 = (i) =>
+                                      i.user.id === u.id &&
+                                      i.customId === "chanSelect" &&
+                                      interaction.message.interaction.id ===
+                                        msg.interaction.id;
+                                    const rccollector2 =
+                                      interaction.channel.createMessageComponentCollector(
+                                        {
+                                          igfilter2,
+                                          time: 120000,
+                                        }
+                                      );
+
+                                    rccollector2.on(
+                                      "collect",
+                                      async (interaction) => {
+                                        q.main.ignore.channels =
+                                          interaction.values;
+                                        rccollector2.stop();
+                                        rco.delete();
+                                        let content = `Set the command to ignore`;
+                                        q.main.ignore.channels.forEach(
+                                          (chan) => {
+                                            content += ` <#${chan}>`;
+                                          }
+                                        );
+                                        interaction.reply({
+                                          content: content,
+                                          ephemeral: true,
+                                        });
+                                        createButCompent();
+                                      }
+                                    );
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  break;
+                                case "rqchannels":
+                                  try {
+                                    const rcroleSel =
+                                      new ChannelSelectMenuBuilder()
+                                        .setCustomId("chanSelect")
+                                        .setMaxValues(5)
+                                        .setMinValues(0)
+                                        .setDefaultChannels(
+                                          q.main.require.channels
+                                        );
+                                    const rcrow =
+                                      new ActionRowBuilder().addComponents(
+                                        rcroleSel
+                                      );
+                                    const rco = await interaction.reply({
+                                      components: [rcrow],
+                                      ephemeral: true,
+                                    });
+                                    const igfilter2 = (i) =>
+                                      i.user.id === u.id &&
+                                      i.customId === "chanSelect" &&
+                                      interaction.message.interaction.id ===
+                                        msg.interaction.id;
+                                    const rccollector2 =
+                                      interaction.channel.createMessageComponentCollector(
+                                        {
+                                          igfilter2,
+                                          time: 120000,
+                                        }
+                                      );
+
+                                    rccollector2.on(
+                                      "collect",
+                                      async (interaction) => {
+                                        q.main.require.channels =
+                                          interaction.values;
+                                        rccollector2.stop();
+                                        rco.delete();
+                                        let content = `Set the command to require`;
+                                        q.main.require.channels.forEach(
+                                          (chan) => {
+                                            content += `, <#${chan}>`;
+                                          }
+                                        );
+                                        interaction.reply({
+                                          content: content,
+                                          ephemeral: true,
+                                        });
+                                        createButCompent();
+                                      }
+                                    );
+                                  } catch (err) {
+                                    reject(err);
+                                  }
+                                  break;
+                              }
+                              r.delete();
+                              collector2.stop();
+                            } catch (err) {
+                              reject(err);
+                            }
+                          });
+                        } catch (err) {
+                          throw err;
+                        }
+                      }
+                      createSetCompent(butInteraction, u);
+                    } else if (butInteraction.customId === "embbut") {
+                      console.log(1)
+                      msg.edit({
+                        content: msg.content,
+                        embeds: [re],
+                        components: [row, rowBut2],
+                      });
+                      createButCompent()
+                      createMsgCompent();
+                      butInteraction.deferUpdate();
+                    } else if (butInteraction.customId === "delembbut") {
+                      console.log(1)
+                      em = false;
+                      msg.edit({
+                        content: msg.content,
+                        embeds: [],
+                        components: [rowBut],
+                      });
+                      q.embed = {}
+                      createButCompent()
+                      collector.stop()
+                      butInteraction.deferUpdate();
+                    } else if (butInteraction.customId === "msgbut") {
+                      const fields = {
+                        content: new TextInputBuilder()
+                          .setCustomId(`content`)
+                          .setLabel(`The content of the message`)
+                          .setStyle(2)
+                          .setRequired(true),
+                      };
+                      const modal = new ModalBuilder()
+                        .setCustomId(`contentModal`)
+                        .setTitle(`Message content`);
+                      const modalrow = new ActionRowBuilder().addComponents(
+                        fields.content
+                      );
+                      modal.setComponents(modalrow); 
+                      try {
+                        await butInteraction.showModal(modal);
+                      } catch (err) {
+                        throw err;
+                      }
+                      let submitted = await butInteraction
+                        .awaitModalSubmit({
+                          time: 60000,
+                          filter: (i) => i.user.id === butInteraction.user.id,
+                        })
+                        .catch((err) => {
+                          throw err;
+                        });
+                      if (!submitted) {
+                        createButCompent()
+                        return;
+                      }
+                      msg.edit({
+                        content: submitted.fields.getTextInputValue("content"),
+                        embeds: msg.embeds,
+                        components: msg.components,
+                      }); 
+                      (q.message.content =
+                        submitted.fields.getTextInputValue("content")),
+                        submitted.deferUpdate();
+                        createButCompent()
+                    }
+                    deb = false;
+                  }
+                } catch (err) {
+                  reject(err);
+                }
+              });
+              collectorBut.on("end", () => {
+                if (!ms) {
+                  msg.edit({ components: [] });
+                  collector.stop();
+                  resolve();
+                } else {
+                  ms = false;
+                }
+              });
+            }
+            createButCompent();
           })
           .catch((err) => {
             reject(err);

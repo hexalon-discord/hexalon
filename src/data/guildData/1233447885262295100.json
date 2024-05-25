@@ -160,6 +160,32 @@
         "content": "this is a test message"
       },
       "embed": {}
+    },
+    {
+      "name": "asd",
+      "id": "9bHJ13d433Y4wRuB",
+      "enabled": false,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1243973150455369789"
+      },
+      "created": {
+        "time": 1716661714225,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": "test"
+      },
+      "embed": {}
     }
   ],
   "moderations": [

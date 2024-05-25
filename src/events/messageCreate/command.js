@@ -4,6 +4,7 @@ const config = require('../../config/config');
 const dotenv = require('dotenv');
 const fs = require('fs')
 const path = require('path')
+const cooldown = []
 
 module.exports = async (client, message) => {
 
