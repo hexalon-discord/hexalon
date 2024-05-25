@@ -30,7 +30,6 @@ module.exports = async (client, message) => {
     let ccd;
     if (!command) {
       ccd = await client.data.getCustomCommand(message.guild, commandName)
-      console.log(ccd)
       if (!ccd) {
         return;
       }
@@ -55,10 +54,8 @@ module.exports = async (client, message) => {
         } else {
           await client.customCommands.executeCC(client, message, ccd, (err) => {
             if (err) {
-              console.log(err)
                 throw err;
             };
-            console.log(err)
         });
         }
     } catch (error) {
@@ -112,19 +109,30 @@ module.exports = async (client, message) => {
             return;
         }
     });
-      
+    try {
       if (message.replied) {
         await message
-          .editReply({
+          .send({
             embeds: [errorEmbed],
           })
-          .catch(() => {});
+          .catch(() => {      
+            message.channel.send({
+            embeds: [errorEmbed],
+          })});
       } else {
         await message
           .reply({
             embeds: [errorEmbed],
           })
-          .catch(() => {});
+          .catch(() => {      
+            message.channel.send({
+            embeds: [errorEmbed],
+          })});
       }
+    } catch (err) {
+      message.channel.send({
+        embeds: [errorEmbed],
+      })
+    }
     };
 }

@@ -1,10 +1,8 @@
 const { EmbedBuilder } = require("discord.js")
 
 module.exports = class CustomCommands {
-  static executeCC(c, msg, ccd, cb) {
-    console.log("recieved")
+  static async executeCC(c, msg, ccd, cb) {
     try {
-      console.log("start")
       const ignoredChannels = ccd.ignore.channels
       const ignoredRoles = ccd.ignore.roles
       ignoredChannels.forEach(channelId => {
@@ -17,7 +15,6 @@ module.exports = class CustomCommands {
           return;
         }
       });
-      console.log("not ignored")
       const requiredChannels = ccd.require.channels
       const requiredRoles = ccd.require.roles
       if (!requiredChannels === undefined) {
@@ -34,44 +31,51 @@ module.exports = class CustomCommands {
           }
         });
       }
-      console.log("met requirements")
       if (ccd.delete_trigger) {
         msg.delete()
-        console.log("deleted trigger")
       }
-      const embed = new EmbedBuilder()
-      console.log("making embed", embed)
-      if (ccd.embed.color !== null){embed.setColor(ccd.embed.color)};
-      if (ccd.embed.title !== null){embed.setTitle(ccd.embed.title)};
-      if (ccd.embed.url !== null){embed.setURL(ccd.embed.url)};
-      if (ccd.embed.author.name !== null){embed.setAuthor({name: ccd.embed.author.name, iconURL: ccd.embed.author.icon, url: ccd.embed.author.url})};
-      if (ccd.embed.description !== null){embed.setDescription(ccd.embed.description)};
-      if (ccd.embed.fields && ccd.embed.fields[0].name !== null) {
-        ccd.embed.fields.forEach(field => {
-          if (field.name !== null) {
+      const embed = new EmbedBuilder();
+      
+      if (ccd.embed.color) embed.setColor(ccd.embed.color);
+      if (ccd.embed.title) embed.setTitle(ccd.embed.title);
+      if (ccd.embed.url) embed.setURL(ccd.embed.url);
+      if (ccd.embed.author) {
+        embed.setAuthor({
+          name: ccd.embed.author.name,
+          iconURL: ccd.embed.author.icon,
+          url: ccd.embed.author.url,
+        });
+      }
+      if (ccd.embed.description) embed.setDescription(ccd.embed.description);
+      if (ccd.embed.fields && ccd.embed.fields.length > 0) {
+        ccd.embed.fields.forEach((field) => {
+          if (field.name) {
             embed.addFields({ name: field.name, value: field.value, inline: field.inline });
           }
         });
       }
-      if (ccd.embed.thumbnail !== null){embed.setThumbnail(ccd.embed.thumbnail)};
-      if (ccd.embed.image !== null){embed.setImage(ccd.embed.image)};
-      if (ccd.embed.footer.text !== null){embed.setFooter({text: ccd.embed.footer.text, iconURL: ccd.embed.footer.icon})};
-      if (ccd.embed.timestamp !== false){embed.setTimestamp()};
-      if (ccd.reply.dreply) {
-        if (embed.data.size !== 0) {
-          msg.reply({content: ccd.message.content, embeds: [embed]});
-        } else {
-          msg.reply({content: ccd.message.content});
-        };
-        console.log("replied")
-      } else {
-        if (embed.data.size !== 0) {
-          msg.channel.send({content: ccd.message.content, embeds: [embed]});
-        } else {
-          msg.channel.send({content: ccd.message.content});
-        };
+      if (ccd.embed.thumbnail) embed.setThumbnail(ccd.embed.thumbnail.url);
+      if (ccd.embed.image) embed.setImage(ccd.embed.image.url);
+      if (ccd.embed.footer && ccd.embed.footer.text) {
+        embed.setFooter({ text: ccd.embed.footer.text, iconURL: ccd.embed.footer.icon });
       }
-      cb(200)
+      if (ccd.embed.timestamp !== false) embed.setTimestamp();
+      if (ccd.reply.dreply) {
+        if (embed.data.description && embed.data.description.length > 0) {
+          msg.reply({ content: ccd.message.content, embeds: [embed] });
+        } else {
+          msg.reply({ content: ccd.message.content });
+        }
+      } else if (!ccd.reply.channel !== msg.channel.id) {
+        const channel = await msg.guild.channels.fetch(ccd.reply.channel)
+        channel.send({ content: ccd.message.content, embeds: [embed] })
+      } else {
+        if (embed.data.description && embed.data.description.length > 0) {
+          msg.channel.send({ content: ccd.message.content, embeds: [embed] });
+        } else {
+          msg.channel.send({ content: ccd.message.content });
+        }
+      }
     } catch (err) {
       cb(err);
     }

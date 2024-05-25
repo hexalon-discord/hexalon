@@ -44,15 +44,15 @@
   "customCommands": [
     {
       "name": "SSU",
-      "id": "ASDjfsafdhAY17731DSAJK",
+      "id": "HUMwgqgpBtATDkVi",
       "enabled": true,
       "delete_trigger": true,
       "reply": {
         "dreply": false,
-        "channel": null
+        "channel": "1233448002501349376"
       },
       "created": {
-        "time": 1716566722000,
+        "time": 1716643084813,
         "user": "872110981835268096"
       },
       "require": {
@@ -64,35 +64,36 @@
         "roles": []
       },
       "message": {
-        "content": "this is a test"
+        "content": "@here <@&role>"
       },
       "embed": {
-        "color": null,
-        "title": "test tes test",
+        "color": 16777215,
+        "title": "Server start up!",
         "url": null,
-        "author": {"name": "this is the author", "icon": null, "url": null},
-        "description": "i think im cool",
-        "fields": [
-          {"name": "name", "value": "value of this field", "inline": true},
-          {"name": "name2", "value": "value of this field", "inline": true}
-        ],
-        "thumbnail": null,
-        "image": null,
-        "footer": {"text": null, "icon": null},
-        "timestamp": true
+        "author": null,
+        "description": "We are hosting a server startup! The code is blablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablablabla",
+        "fields": null,
+        "thumbnail": {
+          "url": "https://media.discordapp.net/attachments/1046821788987969589/1194306531395653684/I3zM2Xx9N5.png?ex=6652b0e2&is=66515f62&hm=f33e03e138a70b55422644d61c67e369a3ab1d06d8a2a1dc819589d30e3fdf29&=&format=webp&quality=lossless"
+        },
+        "image": {
+          "url": "https://th.bing.com/th/id/R.3d88a927f8529dcba03364b09d98adbe?rik=JYmQaMVSULpYQg&riu=http%3a%2f%2fthewowstyle.com%2fwp-content%2fuploads%2f2015%2f01%2fnature-images.jpg&ehk=BNPsuSOUR7ATZ3EpRwxx1xFl7LUbO3tYlu1wFLCBrCE%3d&risl=&pid=ImgRaw&r=0"
+        },
+        "footer": null,
+        "timestamp": "2024-05-25T13:15:36.946Z"
       }
     },
     {
-      "name": "SSD",
-      "id": "djkas12123AHFJKH138234js",
-      "enabled": false,
+      "name": "jsahf",
+      "id": "nuHXLEk77CODzVil",
+      "enabled": true,
       "delete_trigger": true,
       "reply": {
         "dreply": false,
-        "channel": null
+        "channel": "1233448002501349376"
       },
       "created": {
-        "time": 1716564732000,
+        "time": 1716647715544,
         "user": "872110981835268096"
       },
       "require": {
@@ -104,35 +105,47 @@
         "roles": []
       },
       "message": {
-        "content": "this is a test"
+        "content": "blablabla"
       },
       "embed": {
-        "color": null,
-        "title": "test tes test",
+        "color": 16777215,
+        "title": null,
         "url": null,
-        "author": {"name": "this is the author", "icon": null, "url": null},
-        "description": "i think im cool",
+        "author": {
+          "name": "Name"
+        },
+        "description": "_ _",
         "fields": [
-          {"name": "name", "value": "value of this field", "inline": true},
-          {"name": "name2", "value": "value of this field", "inline": true}
+          {
+            "name": "e",
+            "value": "e"
+          },
+          {
+            "name": "r",
+            "value": "r"
+          },
+          {
+            "name": "e",
+            "value": "e"
+          }
         ],
         "thumbnail": null,
         "image": null,
-        "footer": {"text": null, "icon": null},
-        "timestamp": true
+        "footer": null,
+        "timestamp": "2024-05-25T14:34:44.630Z"
       }
     },
     {
-      "name": "test",
-      "id": "12345",
-      "enabled": false,
-      "delete_trigger": false,
+      "name": "123123",
+      "id": "tYoESbKkspBBabW1",
+      "enabled": true,
+      "delete_trigger": true,
       "reply": {
         "dreply": false,
-        "channel": null
+        "channel": "1233448002501349376"
       },
       "created": {
-        "time": 1716564732000,
+        "time": 1716650325596,
         "user": "872110981835268096"
       },
       "require": {
@@ -144,23 +157,9 @@
         "roles": []
       },
       "message": {
-        "content": "this is a test"
+        "content": "this is a test message"
       },
-      "embed": {
-        "color": null,
-        "title": "test tes test",
-        "url": null,
-        "author": {"name": "this is the author", "icon": null, "url": null},
-        "description": "i think im cool",
-        "fields": [
-          {"name": "name", "value": "value of this field", "inline": true},
-          {"name": "name2", "value": "value of this field", "inline": true}
-        ],
-        "thumbnail": null,
-        "image": null,
-        "footer": {"text": null, "icon": null},
-        "timestamp": true
-      }
+      "embed": {}
     }
   ],
   "moderations": [

@@ -8,6 +8,8 @@ const {
   StringSelectMenuOptionBuilder,
   TextInputBuilder,
   ModalBuilder,
+  RoleSelectMenuBuilder,
+  ChannelSelectMenuBuilder,
 } = require("discord.js");
 const config = require("../config/config");
 const fs = require("fs");
@@ -131,8 +133,43 @@ module.exports = class Manager {
               try {
                 if (interaction.customId === "crbut") {
                   collector.stop();
-                  await interaction.deferUpdate();
-                  const er = await this.createCustomCommand(c, i, u);
+                  const fields = {
+                    content: new TextInputBuilder()
+                      .setCustomId(`name`)
+                      .setLabel(`The name of the command`)
+                      .setStyle(1)
+                      .setRequired(true),
+                  };
+                  const modal = new ModalBuilder()
+                    .setCustomId(`contentModal`)
+                    .setTitle(`Command creation`);
+                  const modalrow = new ActionRowBuilder().addComponents(
+                    fields.content
+                  );
+                  modal.setComponents(modalrow);
+                  try {
+                    await interaction.showModal(modal);
+                  } catch (err) {
+                    throw err;
+                  }
+                  let submitted = await interaction
+                    .awaitModalSubmit({
+                      time: 60000,
+                      filter: (i) => i.user.id === interaction.user.id,
+                    })
+                    .catch((err) => {
+                      throw err;
+                    });
+                  if (!submitted) {
+                    return;
+                  }
+                  submitted.deferUpdate();
+                  const er = await this.createCustomCommand(
+                    c,
+                    i,
+                    u,
+                    submitted.fields.getTextInputValue("name")
+                  );
                   if (er) {
                     reject(err);
                   }
@@ -147,10 +184,10 @@ module.exports = class Manager {
                 }
                 resolve();
               } catch (err) {
-                if (!interaction.deferred) {
+                reject(err);
+                if (!interaction.deferred && !interaction.replied) {
                   await interaction.deferUpdate();
                 }
-                reject(err);
               }
             });
 
@@ -173,9 +210,33 @@ module.exports = class Manager {
     }
   }
 
-  static async createCustomCommand(c, i, u, cb) {
+  static async createCustomCommand(c, i, u, n) {
     try {
-      // EMBED \\
+      let q = {
+        main: {
+          name: n,
+          enabled: true,
+          delete_trigger: true,
+          user: u.id,
+          reply: {
+            dreply: false,
+            channel: i.channel.id,
+          },
+          require: {
+            channels: [],
+            roles: [],
+          },
+          ignore: {
+            channels: [],
+            roles: [],
+          },
+        },
+        message: {
+          content: null,
+        },
+        embed: {},
+      };
+
       const emSel = new StringSelectMenuBuilder()
         .setCustomId("create")
         .setPlaceholder("The option to change")
@@ -217,7 +278,48 @@ module.exports = class Manager {
             .setDescription("Toggle the timestamp of the embed")
             .setValue("timestamp")
         );
-        const cb = new ButtonBuilder()
+      const setSel = new StringSelectMenuBuilder()
+        .setCustomId("setting")
+        .setPlaceholder("The setting to change")
+        .addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Name")
+            .setDescription("The name of the command")
+            .setValue("name"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Enabled?")
+            .setDescription("Toggle wether the command is enabled")
+            .setValue("enabled"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Delete Trigger?")
+            .setDescription("Delete the trigger on activation")
+            .setValue("delete_trigger"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Reply?")
+            .setDescription("Toggle wether the command replies")
+            .setValue("dreply"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Reply channel")
+            .setDescription("Change the channel to reply in")
+            .setValue("replychannel"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Ignore Roles")
+            .setDescription("Roles that should be ignored")
+            .setValue("igroles"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Ignore Channel")
+            .setDescription("Channels that should be ignored")
+            .setValue("igchannel"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Require Roles")
+            .setDescription("Roles that should be required")
+            .setValue("rqroles"),
+          new StringSelectMenuOptionBuilder()
+            .setLabel("Required Channel")
+            .setDescription("Channels that should be Required")
+            .setValue("rqchannel")
+        );
+      const cb = new ButtonBuilder()
         .setCustomId("crbut")
         .setEmoji(`➕`)
         .setLabel(`Create`)
@@ -231,21 +333,51 @@ module.exports = class Manager {
       const set = new ButtonBuilder()
         .setCustomId("setbut")
         .setEmoji(`⚙️`)
-        .setLabel(`Settings (soon)`)
+        .setLabel(`Settings`)
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(true);
+        .setDisabled(false);
+      const msgbut = new ButtonBuilder()
+        .setCustomId("msgbut")
+        .setEmoji(`💬`)
+        .setLabel(`Edit the message`)
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(false);
+      const embbut = new ButtonBuilder()
+        .setCustomId("embbut")
+        .setEmoji(`📓`)
+        .setLabel(`Add an embed`)
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(false);
+      const delembbut = new ButtonBuilder()
+        .setCustomId("delembbut")
+        .setEmoji(`📓`)
+        .setLabel(`Remove the embed`)
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(false);
 
-      const rowBut = new ActionRowBuilder().addComponents(cb, dlb, set);
-
+      const rowBut = new ActionRowBuilder().addComponents(
+        cb,
+        dlb,
+        set,
+        msgbut,
+        embbut
+      );
+      const rowBut2 = new ActionRowBuilder().addComponents(
+        cb,
+        dlb,
+        set,
+        msgbut,
+        delembbut
+      );
       const re = new EmbedBuilder().setDescription("_ _");
       const row = new ActionRowBuilder().addComponents(emSel);
-      let q, s;
 
+      let s;
       const replyPromise = new Promise((resolve, reject) => {
-        i.reply({ embeds: [re], components: [row, rowBut] })
+        i.reply({ content: "_ _", components: [rowBut] })
           .then((msg) => {
             let collector;
-            function createMsgCompent(stop) {
+            function createMsgCompent() {
               try {
                 const filter = (interaction) => {
                   if (
@@ -318,43 +450,59 @@ module.exports = class Manager {
                             .setRequired(false),
                         };
                         const feSel = new StringSelectMenuBuilder()
-                        .setCustomId("field_select")
-                        .setPlaceholder("Select field to edit or create a new one")
-                        .addOptions(
-                          new StringSelectMenuOptionBuilder()
-                            .setLabel("New Field")
-                            .setDescription("Create a new field")
-                            .setValue("_%$%new%$%_%$%field%$%_")
-                        );
-                    
-                      if (re.data.fields) {
-                        re.data.fields.forEach((field, index) => {
-                          feSel.addOptions(
+                          .setCustomId("field_select")
+                          .setPlaceholder(
+                            "Select field to edit or create a new one"
+                          )
+                          .addOptions(
                             new StringSelectMenuOptionBuilder()
-                              .setLabel(field.name)
-                              .setDescription(`Edit this field [${index}]`)
-                              .setValue(`${field.name} ${index}`)
+                              .setLabel("New Field")
+                              .setDescription("Create a new field")
+                              .setValue("_%$%new%$%_%$%field%$%_")
                           );
-                        });
-                      }
-                    
-                      const ferow = new ActionRowBuilder().addComponents(feSel);
-                      const r = await interaction.reply({ components: [ferow], ephemeral: true });
-                    
-                      const filter2 = (i) => i.user.id === u.id && i.customId === "field_select";
-                      const collector2 = interaction.channel.createMessageComponentCollector({ filter2, time: 120000 });
-                    
-                      collector2.on("collect", async (fieldInteraction) => {
-                        const value = fieldInteraction.values[0].split(' ')[0];
-                        if (value === "_%$%new%$%_%$%field%$%_") {
-                          await createModal(fieldInteraction, "new field");
-                        } else {
-                          await createModal(fieldInteraction, fieldInteraction.values[0]);
+
+                        if (re.data.fields) {
+                          re.data.fields.forEach((field, index) => {
+                            feSel.addOptions(
+                              new StringSelectMenuOptionBuilder()
+                                .setLabel(field.name)
+                                .setDescription(`Edit this field [${index}]`)
+                                .setValue(`${field.name} ${index}`)
+                            );
+                          });
                         }
-                        r.delete()
-                        collector2.stop();
-                      });
-                    
+
+                        const ferow = new ActionRowBuilder().addComponents(
+                          feSel
+                        );
+                        const r = await interaction.reply({
+                          components: [ferow],
+                          ephemeral: true,
+                        });
+
+                        const filter2 = (i) =>
+                          i.user.id === u.id && i.customId === "field_select";
+                        const collector2 =
+                          interaction.channel.createMessageComponentCollector({
+                            filter2,
+                            time: 120000,
+                          });
+
+                        collector2.on("collect", async (fieldInteraction) => {
+                          const value =
+                            fieldInteraction.values[0].split(" ")[0];
+                          if (value === "_%$%new%$%_%$%field%$%_") {
+                            await createModal(fieldInteraction, "new field");
+                          } else {
+                            await createModal(
+                              fieldInteraction,
+                              fieldInteraction.values[0]
+                            );
+                          }
+                          r.delete();
+                          collector2.stop();
+                        });
+
                         break;
                       case "author":
                         fields = {
@@ -382,9 +530,9 @@ module.exports = class Manager {
                         } else {
                           delete re.data.timestamp;
                         }
-                        q = re;
+                        q.embed = re;
                         msg
-                          .edit({ embeds: [re], components: [row, rowBut] })
+                          .edit({ embeds: [re], components: msg.components })
                           .then(() => {
                             createMsgCompent();
                           });
@@ -408,7 +556,7 @@ module.exports = class Manager {
                         createModal(interaction);
                         break;
                     }
-                    async function createModal(interaction, field) {                
+                    async function createModal(interaction, field) {
                       const modal = new ModalBuilder()
                         .setCustomId(`${interaction.values[0]}Modal`)
                         .setTitle(
@@ -417,7 +565,9 @@ module.exports = class Manager {
                             interaction.values[0].slice(1)
                           }`
                         );
-                        if (field) {modal.setCustomId(`fieldModal`)}
+                      if (field) {
+                        modal.setCustomId(`fieldModal`);
+                      }
                       const keys = Object.keys(fields);
                       if (fields) {
                         keys.forEach((key) => {
@@ -459,22 +609,42 @@ module.exports = class Manager {
                           re.setDescription(nw);
                           break;
                         case "author":
-                          if (submitted.fields && submitted.fields.getTextInputValue("icon").startsWith('http') && submitted.fields.getTextInputValue("url").startsWith('http')) {
+                          if (
+                            submitted.fields &&
+                            submitted.fields
+                              .getTextInputValue("icon")
+                              .startsWith("http") &&
+                            submitted.fields
+                              .getTextInputValue("url")
+                              .startsWith("http")
+                          ) {
                             re.setAuthor({
                               name: submitted.fields.getTextInputValue("name"),
-                              iconURL: submitted.fields.getTextInputValue("icon"),
+                              iconURL:
+                                submitted.fields.getTextInputValue("icon"),
                               url: submitted.fields.getTextInputValue("url"),
-                            }); 
-                          } else if (submitted.fields && submitted.fields.getTextInputValue("icon").startsWith('http')) {
+                            });
+                          } else if (
+                            submitted.fields &&
+                            submitted.fields
+                              .getTextInputValue("icon")
+                              .startsWith("http")
+                          ) {
                             re.setAuthor({
                               name: submitted.fields.getTextInputValue("name"),
-                              iconURL: submitted.fields.getTextInputValue("icon"),
-                            }); 
-                          } else if (submitted.fields && submitted.fields.getTextInputValue("url").startsWith('http')) {
+                              iconURL:
+                                submitted.fields.getTextInputValue("icon"),
+                            });
+                          } else if (
+                            submitted.fields &&
+                            submitted.fields
+                              .getTextInputValue("url")
+                              .startsWith("http")
+                          ) {
                             re.setAuthor({
                               name: submitted.fields.getTextInputValue("name"),
                               url: submitted.fields.getTextInputValue("url"),
-                            }); 
+                            });
                           } else {
                             re.setAuthor({
                               name: submitted.fields.getTextInputValue("name"),
@@ -494,32 +664,49 @@ module.exports = class Manager {
                           }
                           break;
                         case "footer":
-                          if (submitted.fields && submitted.fields.getTextInputValue("icon").startsWith('http')) {
-                          re.setFooter({
-                            text: submitted.fields.getTextInputValue("name"),
-                            iconURL: submitted.fields.getTextInputValue("icon"),
-                          });
-                        } else {
-                          re.setFooter({
-                            text: submitted.fields.getTextInputValue("name"),
-                          });
-                        }
+                          if (
+                            submitted.fields &&
+                            submitted.fields
+                              .getTextInputValue("icon")
+                              .startsWith("http")
+                          ) {
+                            re.setFooter({
+                              text: submitted.fields.getTextInputValue("name"),
+                              iconURL:
+                                submitted.fields.getTextInputValue("icon"),
+                            });
+                          } else {
+                            re.setFooter({
+                              text: submitted.fields.getTextInputValue("name"),
+                            });
+                          }
                           break;
                         case "image":
-                          if (submitted.fields && submitted.fields.getTextInputValue("image").startsWith('http')) {
-                          nw = submitted.fields.getTextInputValue("image");
-                          re.setImage(nw);
+                          if (
+                            submitted.fields &&
+                            submitted.fields
+                              .getTextInputValue("image")
+                              .startsWith("http")
+                          ) {
+                            nw = submitted.fields.getTextInputValue("image");
+                            re.setImage(nw);
                           }
                           break;
                         case "thumbnail":
-                          if (submitted.fields && submitted.fields.getTextInputValue("thumbnail").startsWith('http')) {
-                          nw = submitted.fields.getTextInputValue("thumbnail");
-                          re.setThumbnail(nw);
+                          if (
+                            submitted.fields &&
+                            submitted.fields
+                              .getTextInputValue("thumbnail")
+                              .startsWith("http")
+                          ) {
+                            nw =
+                              submitted.fields.getTextInputValue("thumbnail");
+                            re.setThumbnail(nw);
                           }
                           break;
                       }
                       if (field) {
-                        if (field === 'new field') {
+                        if (field === "new field") {
                           if (
                             (submitted.fields &&
                               submitted.fields.getTextInputValue("inline") &&
@@ -544,7 +731,7 @@ module.exports = class Manager {
                             });
                           }
                         } else {
-                          re.data.fields[field.split(' ')[1]]
+                          re.data.fields[field.split(" ")[1]];
                           if (
                             (submitted.fields &&
                               submitted.fields.getTextInputValue("inline") &&
@@ -555,20 +742,39 @@ module.exports = class Manager {
                               .getTextInputValue("inline")
                               .toLowerCase() === "y"
                           ) {
-                            console.log(re, re.data, re.data.fields[parseInt(field.split(' ')[1])])                      
-                            re.data.fields[parseInt(field.split(' ')[1])].name = submitted.fields.getTextInputValue("name");
-                            re.data.fields[parseInt(field.split(' ')[1])].value = submitted.fields.getTextInputValue("value");
-                            re.data.fields[parseInt(field.split(' ')[1])].inline = true;
+                            console.log(
+                              re,
+                              re.data,
+                              re.data.fields[parseInt(field.split(" ")[1])]
+                            );
+                            re.data.fields[parseInt(field.split(" ")[1])].name =
+                              submitted.fields.getTextInputValue("name");
+                            re.data.fields[
+                              parseInt(field.split(" ")[1])
+                            ].value =
+                              submitted.fields.getTextInputValue("value");
+                            re.data.fields[
+                              parseInt(field.split(" ")[1])
+                            ].inline = true;
                           } else {
-                            re.data.fields[parseInt(field.split(' ')[1])].name = submitted.fields.getTextInputValue("name");
-                            re.data.fields[parseInt(field.split(' ')[1])].value = submitted.fields.getTextInputValue("value");
-                            re.data.fields[parseInt(field.split(' ')[1])].inline = false;
+                            re.data.fields[parseInt(field.split(" ")[1])].name =
+                              submitted.fields.getTextInputValue("name");
+                            re.data.fields[
+                              parseInt(field.split(" ")[1])
+                            ].value =
+                              submitted.fields.getTextInputValue("value");
+                            re.data.fields[
+                              parseInt(field.split(" ")[1])
+                            ].inline = false;
                           }
-                        }}
-                      q = re;
-                      msg.edit({ embeds: [re], components: [row, rowBut] }).then(() => {
-                        createMsgCompent();
-                      });
+                        }
+                      }
+                      q.embed = re;
+                      msg
+                        .edit({ embeds: [re], components: msg.components })
+                        .then(() => {
+                          createMsgCompent();
+                        });
                       submitted.deferUpdate();
                       s = true;
                       collector.stop();
@@ -581,7 +787,7 @@ module.exports = class Manager {
                 collector.on("end", () => {
                   if (!s) {
                     msg.edit({ components: [] });
-                    collectorBut.stop()
+                    collectorBut.stop();
                     resolve();
                   } else {
                     s = false;
@@ -591,7 +797,6 @@ module.exports = class Manager {
                 throw err;
               }
             }
-            createMsgCompent();
             const filterBut = (interaction) => {
               if (interaction.isButton() && interaction.message.interaction) {
                 return (
@@ -612,15 +817,333 @@ module.exports = class Manager {
               time: 1800000,
             });
             collectorBut.on("collect", async (interaction) => {
-              if (interaction.customId === "delbut") {
-                collector.stop();
-                interaction.reply('Cancelled the making of a new custom command')
-              } else if (interaction.customId === "crbut") {
-                collector.stop()
-                interaction.reply('Made a new custom command')
-                c.data.createCustomCommand(i.guild, q)
-              } else if (interaction.customId === "setbut") {
-                collector.stop()
+              try {
+                if (interaction.customId === "delbut") {
+                  if (collector) {
+                    collector.stop();
+                  }
+                  interaction.reply(
+                    "Cancelled the making of a new custom command"
+                  );
+                } else if (interaction.customId === "crbut") {
+                  if (collector) {
+                    collector.stop();
+                  }
+                  interaction.reply("Made a new custom command");
+                  const er = await c.data.createCustomCommand(i.guild, q);
+                  if (er) {
+                    reject(er);
+                  }
+                } else if (interaction.customId === "setbut") {
+                  async function createSetCompent(interaction, u) {
+                    try {
+                      const setrow = new ActionRowBuilder().addComponents(
+                        setSel
+                      );
+                      const r = await interaction.reply({
+                        components: [setrow],
+                        ephemeral: true,
+                      });
+                      const filter2 = (i) =>
+                        i.user.id === u.id &&
+                        i.customId === "setting" &&
+                        interaction.message.interaction.id ===
+                          msg.interaction.id;
+                      const collector2 =
+                        interaction.channel.createMessageComponentCollector({
+                          filter2,
+                          time: 120000,
+                        });
+                      collector2.on("collect", async (interaction) => {
+                        try {
+                          switch (interaction.values[0]) {
+                            case "name":
+                              try {
+                                const fields = {
+                                  name: new TextInputBuilder()
+                                    .setCustomId(`${interaction.values[0]}`)
+                                    .setLabel(`The ${interaction.values[0]}`)
+                                    .setStyle(1)
+                                    .setRequired(true),
+                                };
+                                const modal = new ModalBuilder()
+                                  .setCustomId(`${interaction.values[0]}Modal`)
+                                  .setTitle(
+                                    `Customcommand: ${
+                                      interaction.values[0]
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                      interaction.values[0].slice(1)
+                                    }`
+                                  );
+                                const modalrow =
+                                  new ActionRowBuilder().addComponents(
+                                    fields.name
+                                  );
+                                modal.setComponents(modalrow);
+
+                                try {
+                                  await interaction.showModal(modal);
+                                } catch (err) {
+                                  throw err;
+                                }
+                                const submitted = await interaction
+                                  .awaitModalSubmit({
+                                    time: 60000,
+                                    filter: (i) =>
+                                      i.user.id === interaction.user.id,
+                                  })
+                                  .catch((err) => {
+                                    throw err;
+                                  });
+                                const oldn = q.main.name;
+                                q.main.name =
+                                  submitted.fields.getTextInputValue("name");
+                                submitted.reply({
+                                  content: `Changed the name from \`${oldn}\` to \`${q.main.name}\``,
+                                  ephemeral: true,
+                                });
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "enabled":
+                              try {
+                                if (q.main.enabled === true) {
+                                  q.main.enabled = false;
+                                } else {
+                                  q.main.enabled = true;
+                                }
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "delete_trigger":
+                              try {
+                                if (q.main.delete_trigger === true) {
+                                  q.main.delete_trigger = false;
+                                } else {
+                                  q.main.delete_trigger = true;
+                                }
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "dreply":
+                              try {
+                                if (q.main.reply.dreply === true) {
+                                  q.main.reply.dreply = false;
+                                } else {
+                                  q.main.reply.dreply = true;
+                                }
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "replychannel":
+                              try {
+                                const rcroleSel = new ChannelSelectMenuBuilder()
+                                  .setCustomId("rolesSelect")
+                                  .setMaxValues(1)
+                                  .setMinValues(1)
+                                  .setDefaultChannels(q.main.reply.channel);
+                                const rcrow =
+                                  new ActionRowBuilder().addComponents(
+                                    rcroleSel
+                                  );
+                                const rco = await interaction.reply({
+                                  components: [rcrow],
+                                  ephemeral: true,
+                                });
+                                const igfilter2 = (i) =>
+                                  i.user.id === u.id &&
+                                  i.customId === "rolesSelect" &&
+                                  interaction.message.interaction.id ===
+                                    msg.interaction.id;
+                                const rccollector2 =
+                                  interaction.channel.createMessageComponentCollector(
+                                    {
+                                      igfilter2,
+                                      time: 120000,
+                                    }
+                                  );
+
+                                rccollector2.on(
+                                  "collect",
+                                  async (interaction) => {
+                                    q.main.ignore.roles = interaction.values;
+                                    interaction.deferUpdate();
+                                    collector2.stop();
+                                    rco.delete();
+                                  }
+                                );
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "igroles":
+                              try {
+                                const igroleSel = new RoleSelectMenuBuilder()
+                                  .setCustomId("rolesSelect")
+                                  .setMaxValues(10)
+                                  .setDefaultRoles(q.main.ignore.roles);
+                                const igrow =
+                                  new ActionRowBuilder().addComponents(
+                                    igroleSel
+                                  );
+                                const igo = await interaction.reply({
+                                  components: [igrow],
+                                  ephemeral: true,
+                                });
+                                const igfilter2 = (i) =>
+                                  i.user.id === u.id &&
+                                  i.customId === "rolesSelect" &&
+                                  interaction.message.interaction.id ===
+                                    msg.interaction.id;
+                                const igcollector2 =
+                                  interaction.channel.createMessageComponentCollector(
+                                    {
+                                      igfilter2,
+                                      time: 120000,
+                                    }
+                                  );
+
+                                igcollector2.on(
+                                  "collect",
+                                  async (interaction) => {
+                                    q.main.ignore.roles = interaction.values;
+                                    interaction.deferUpdate();
+                                    collector2.stop();
+                                    igo.delete();
+                                  }
+                                );
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "igchannels":
+                              try {
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "rqroles":
+                              try {
+                                const rqroleSel = new RoleSelectMenuBuilder()
+                                  .setCustomId("rolesSelect")
+                                  .setMaxValues(10)
+                                  .setDefaultRoles(q.main.require.roles);
+                                const rqrow =
+                                  new ActionRowBuilder().addComponents(
+                                    rqroleSel
+                                  );
+                                const rqo = await interaction.reply({
+                                  components: [rqrow],
+                                  ephemeral: true,
+                                });
+                                const rqfilter2 = (i) =>
+                                  i.user.id === u.id &&
+                                  i.customId === "rolesSelect" &&
+                                  interaction.message.interaction.id ===
+                                    msg.interaction.id;
+                                const rqcollector2 =
+                                  interaction.channel.createMessageComponentCollector(
+                                    {
+                                      rqfilter2,
+                                      time: 120000,
+                                    }
+                                  );
+
+                                rqcollector2.on(
+                                  "collect",
+                                  async (interaction) => {
+                                    q.main.require.roles = interaction.values;
+                                    interaction.deferUpdate();
+                                    rqcollector2.stop();
+                                    rqo.delete();
+                                  }
+                                );
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                            case "rqchannels":
+                              try {
+                              } catch (err) {
+                                reject(err);
+                              }
+                              break;
+                          }
+                          r.delete();
+                          collector2.stop();
+                        } catch (err) {
+                          reject(err);
+                        }
+                      });
+                    } catch (err) {
+                      throw err;
+                    }
+                  }
+                  createSetCompent(interaction, u);
+                } else if (interaction.customId === "embbut") {
+                  msg.edit({
+                    content: msg.content,
+                    embeds: [re],
+                    components: [row, rowBut2],
+                  });
+                  createMsgCompent();
+                  interaction.deferUpdate();
+                } else if (interaction.customId === "delembbut") {
+                  msg.edit({
+                    content: msg.content,
+                    embeds: [],
+                    components: [rowBut],
+                  });
+                  createMsgCompent();
+                  interaction.deferUpdate();
+                } else if (interaction.customId === "msgbut") {
+                  const fields = {
+                    content: new TextInputBuilder()
+                      .setCustomId(`content`)
+                      .setLabel(`The content of the message`)
+                      .setStyle(2)
+                      .setRequired(true),
+                  };
+                  const modal = new ModalBuilder()
+                    .setCustomId(`contentModal`)
+                    .setTitle(`Message content`);
+                  const modalrow = new ActionRowBuilder().addComponents(
+                    fields.content
+                  );
+                  modal.setComponents(modalrow);
+
+                  try {
+                    await interaction.showModal(modal);
+                  } catch (err) {
+                    throw err;
+                  }
+                  let submitted = await interaction
+                    .awaitModalSubmit({
+                      time: 60000,
+                      filter: (i) => i.user.id === interaction.user.id,
+                    })
+                    .catch((err) => {
+                      throw err;
+                    });
+                  if (!submitted) {
+                    return;
+                  }
+                  msg.edit({
+                    content: submitted.fields.getTextInputValue("content"),
+                    embeds: msg.embeds,
+                    components: msg.components,
+                  });
+                  (q.message.content =
+                    submitted.fields.getTextInputValue("content")),
+                    submitted.deferUpdate();
+                }
+              } catch (err) {
+                reject(err);
               }
             });
           })
@@ -635,6 +1158,7 @@ module.exports = class Manager {
       return err;
     }
   }
+
   static async deleteCustomCommand(c, i, u) {
     try {
     } catch (err) {
