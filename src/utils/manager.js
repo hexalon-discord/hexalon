@@ -501,7 +501,7 @@ module.exports = class Manager {
                             );
                           }
                           r.delete();
-                          collector2.stop()
+                          collector2.stop();
                         });
 
                         break;
@@ -556,6 +556,7 @@ module.exports = class Manager {
                         break;
                     }
                     async function createModal(interaction, field) {
+                      try {
                       const modal = new ModalBuilder()
                         .setCustomId(`${interaction.values[0]}Modal`)
                         .setTitle(
@@ -591,8 +592,18 @@ module.exports = class Manager {
                           throw err;
                         });
                       handleModal(submitted, interaction, field);
+                    } catch (err) {
+                      if (
+                        err instanceof DiscordAPIError &&
+                        err.code === 10062
+                      ) {
+                        return;
+                      }
+                      reject(err);
+                    }
                     }
                     function handleModal(submitted, interaction, field) {
+                      try {
                       if (!submitted) {
                         return;
                       }
@@ -775,9 +786,19 @@ module.exports = class Manager {
                           createMsgCompent();
                         });
                       submitted.deferUpdate();
+                    } catch (err) {
+                      if (
+                        err instanceof DiscordAPIError &&
+                        err.code === 10062
+                      ) {
+                        return;
+                      }
+                      reject(err);
+                    }
                     }
                     s = true;
                     collector.stop();
+                    
                   } catch (err) {
                     reject(err);
                   }
@@ -795,7 +816,7 @@ module.exports = class Manager {
               }
             }
             function createButCompent() {
-              console.log(1, "buttons")
+              console.log(1, "buttons");
               const filterBut = (interaction) => {
                 if (interaction.isButton() && interaction.message.interaction) {
                   return (
@@ -816,6 +837,7 @@ module.exports = class Manager {
                 time: 1800000,
               });
               collectorBut.on("collect", async (butInteraction) => {
+                console.log(2, "buttons");
                 try {
                   if (!deb) {
                     deb = true;
@@ -830,13 +852,20 @@ module.exports = class Manager {
                         "Cancelled the making of a new custom command"
                       );
                     } else if (butInteraction.customId === "createbut") {
-                      if (collector) {
-                        collector.stop();
-                      }
-                      butInteraction.reply("Made a new custom command");
-                      const er = await c.data.createCustomCommand(butInteraction.guild, q);
-                      if (er) {
-                        reject(er);
+                      try {
+                        if (collector) {
+                          collector.stop();
+                        }
+                        butInteraction.reply("Made a new custom command");
+                        const er = await c.data.createCustomCommand(
+                          butInteraction.guild,
+                          q
+                        );
+                        if (er) {
+                          reject(er);
+                        }
+                      } catch (err) {
+                        reject(err);
                       }
                     } else if (butInteraction.customId === "setbut") {
                       async function createSetCompent(interaction, u) {
@@ -926,7 +955,6 @@ module.exports = class Manager {
                                       content: `Changed the name from \`${oldn}\` to \`${q.main.name}\``,
                                       ephemeral: true,
                                     });
-                                    createButCompent();
                                   } catch (err) {
                                     reject(err);
                                   }
@@ -946,7 +974,6 @@ module.exports = class Manager {
                                         ephemeral: true,
                                       });
                                     }
-                                    createButCompent();
                                   } catch (err) {
                                     reject(err);
                                   }
@@ -967,11 +994,9 @@ module.exports = class Manager {
                                         ephemeral: true,
                                       });
                                     }
-                                    createButCompent();
                                   } catch (err) {
                                     reject(err);
                                   }
-                                  createButCompent();
                                   break;
                                 case "dreply":
                                   try {
@@ -988,7 +1013,6 @@ module.exports = class Manager {
                                         ephemeral: true,
                                       });
                                     }
-                                    createButCompent();
                                   } catch (err) {
                                     reject(err);
                                   }
@@ -1036,7 +1060,6 @@ module.exports = class Manager {
                                           content: content,
                                           ephemeral: true,
                                         });
-                                        createButCompent();
                                       }
                                     );
                                   } catch (err) {
@@ -1086,7 +1109,6 @@ module.exports = class Manager {
                                         });
                                         igcollector2.stop();
                                         igo.delete();
-                                        createButCompent();
                                       }
                                     );
                                   } catch (err) {
@@ -1141,7 +1163,6 @@ module.exports = class Manager {
                                           content: content,
                                           ephemeral: true,
                                         });
-                                        createButCompent();
                                       }
                                     );
                                   } catch (err) {
@@ -1196,7 +1217,6 @@ module.exports = class Manager {
                                           content: content,
                                           ephemeral: true,
                                         });
-                                        createButCompent();
                                       }
                                     );
                                   } catch (err) {
@@ -1211,74 +1231,89 @@ module.exports = class Manager {
                             }
                           });
                         } catch (err) {
-                          throw err;
+                          if (
+                            err instanceof DiscordAPIError &&
+                            err.code === 10062
+                          ) {
+                            return;
+                          }
+                          reject(err);
                         }
                       }
                       createSetCompent(butInteraction, u);
                     } else if (butInteraction.customId === "embbut") {
-                      console.log(1)
+                      console.log(1);
                       msg.edit({
                         content: msg.content,
                         embeds: [re],
                         components: [row, rowBut2],
                       });
-                      createButCompent()
                       createMsgCompent();
                       butInteraction.deferUpdate();
                     } else if (butInteraction.customId === "delembbut") {
-                      console.log(1)
+                      console.log(1);
                       em = false;
                       msg.edit({
                         content: msg.content,
                         embeds: [],
                         components: [rowBut],
                       });
-                      q.embed = {}
-                      createButCompent()
-                      collector.stop()
+                      q.embed = {};
+                      collector.stop();
                       butInteraction.deferUpdate();
                     } else if (butInteraction.customId === "msgbut") {
-                      const fields = {
-                        content: new TextInputBuilder()
-                          .setCustomId(`content`)
-                          .setLabel(`The content of the message`)
-                          .setStyle(2)
-                          .setRequired(true),
-                      };
-                      const modal = new ModalBuilder()
-                        .setCustomId(`contentModal`)
-                        .setTitle(`Message content`);
-                      const modalrow = new ActionRowBuilder().addComponents(
-                        fields.content
-                      );
-                      modal.setComponents(modalrow); 
                       try {
-                        await butInteraction.showModal(modal);
-                      } catch (err) {
-                        throw err;
-                      }
-                      let submitted = await butInteraction
-                        .awaitModalSubmit({
-                          time: 60000,
-                          filter: (i) => i.user.id === butInteraction.user.id,
-                        })
-                        .catch((err) => {
+                        const fields = {
+                          content: new TextInputBuilder()
+                            .setCustomId(`content`)
+                            .setLabel(`The content of the message`)
+                            .setStyle(2)
+                            .setRequired(true),
+                        };
+                        const modal = new ModalBuilder()
+                          .setCustomId(`contentModal`)
+                          .setTitle(`Message content`);
+                        const modalrow = new ActionRowBuilder().addComponents(
+                          fields.content
+                        );
+                        modal.setComponents(modalrow);
+                        try {
+                          await butInteraction.showModal(modal);
+                        } catch (err) {
                           throw err;
+                        }
+                        let submitted = await butInteraction
+                          .awaitModalSubmit({
+                            time: 60000,
+                            filter: (i) => i.user.id === butInteraction.user.id,
+                          })
+                          .catch((err) => {
+                            throw err;
+                          });
+                        if (!submitted) {
+                          createButCompent();
+                          return;
+                        }
+                        msg.edit({
+                          content:
+                            submitted.fields.getTextInputValue("content"),
+                          embeds: msg.embeds,
+                          components: msg.components,
                         });
-                      if (!submitted) {
-                        createButCompent()
-                        return;
+                        (q.message.content =
+                          submitted.fields.getTextInputValue("content")),
+                          submitted.deferUpdate();
+                      } catch (err) {
+                        if (
+                          err instanceof DiscordAPIError &&
+                          err.code === 10062
+                        ) {
+                          return;
+                        }
+                        reject(err);
                       }
-                      msg.edit({
-                        content: submitted.fields.getTextInputValue("content"),
-                        embeds: msg.embeds,
-                        components: msg.components,
-                      }); 
-                      (q.message.content =
-                        submitted.fields.getTextInputValue("content")),
-                        submitted.deferUpdate();
-                        createButCompent()
                     }
+                    createButCompent();
                     deb = false;
                   }
                 } catch (err) {
@@ -1286,9 +1321,11 @@ module.exports = class Manager {
                 }
               });
               collectorBut.on("end", () => {
+                console.log(3, "buttons");
                 if (!ms) {
                   msg.edit({ components: [] });
                   collector.stop();
+                  console.log(4, "buttons");
                   resolve();
                 } else {
                   ms = false;

@@ -274,7 +274,7 @@ module.exports = class DataHandler {
                             reject(err);
                             return;
                         }
-                        resolve(data);
+                        resolve();
                     });
                 } catch (err) {
                     reject(err);

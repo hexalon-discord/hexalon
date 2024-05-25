@@ -186,6 +186,140 @@
         "content": "test"
       },
       "embed": {}
+    },
+    {
+      "name": "test",
+      "id": "8KiGV9c64I2D7VOW",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1243973150455369789"
+      },
+      "created": {
+        "time": 1716663703236,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": "test"
+      },
+      "embed": {}
+    },
+    {
+      "name": "test2",
+      "id": "LvPa7fdjye4w2dtL",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1243973150455369789"
+      },
+      "created": {
+        "time": 1716663764163,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": "test"
+      },
+      "embed": {}
+    },
+    {
+      "name": "test3",
+      "id": "EMkj9p2pGzN3Ygv1",
+      "enabled": false,
+      "delete_trigger": false,
+      "reply": {
+        "dreply": true,
+        "channel": "1243973150455369789"
+      },
+      "created": {
+        "time": 1716663817175,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": "test3"
+      },
+      "embed": {}
+    },
+    {
+      "name": "stfu",
+      "id": "08VlVPaC63RQgqNa",
+      "enabled": false,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1243973150455369789"
+      },
+      "created": {
+        "time": 1716664565356,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": "this\nis\nthe\nmessage\ncontent\nplease\nrespectfully\nshut\nthe\nfuck\nup\n:)"
+      },
+      "embed": {}
+    },
+    {
+      "name": "testingthisthing",
+      "id": "GV7QAckYdUmcioKW",
+      "enabled": true,
+      "delete_trigger": false,
+      "reply": {
+        "dreply": true,
+        "channel": [
+          "1233448002501349376"
+        ]
+      },
+      "created": {
+        "time": 1716665218074,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": [
+          "1234247559342592070"
+        ]
+      },
+      "message": {
+        "content": "test"
+      },
+      "embed": {}
     }
   ],
   "moderations": [
