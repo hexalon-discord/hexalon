@@ -206,4 +206,21 @@ module.exports = class DataHandler {
             });
         });
     }
+    static createCustomCommand(guild, data) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                    const guildFile = JSON.parse(datajson);
+                    const data = guildFile.customCommands
+                    resolve(data ? data : false);
+                } catch (err) {
+                    reject(err)
+                }
+            });
+        });
+    }
 }

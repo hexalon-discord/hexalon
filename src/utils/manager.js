@@ -199,7 +199,7 @@ module.exports = class Manager {
           new StringSelectMenuOptionBuilder()
             .setLabel("Fields")
             .setDescription("The fields of the embed")
-            .setValue("fields"),
+            .setValue("field"),
           new StringSelectMenuOptionBuilder()
             .setLabel("Thumbnail")
             .setDescription("The thumbnail of the embed")
@@ -217,14 +217,35 @@ module.exports = class Manager {
             .setDescription("Toggle the timestamp of the embed")
             .setValue("timestamp")
         );
+        const cb = new ButtonBuilder()
+        .setCustomId("crbut")
+        .setEmoji(`➕`)
+        .setLabel(`Create`)
+        .setStyle(ButtonStyle.Success);
+
+      const dlb = new ButtonBuilder()
+        .setCustomId("delbut")
+        .setEmoji(`🗑️`)
+        .setLabel(`Cancel`)
+        .setStyle(ButtonStyle.Danger);
+      const set = new ButtonBuilder()
+        .setCustomId("setbut")
+        .setEmoji(`⚙️`)
+        .setLabel(`Settings (soon)`)
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(true);
+
+      const rowBut = new ActionRowBuilder().addComponents(cb, dlb, set);
+
       const re = new EmbedBuilder().setDescription("_ _");
       const row = new ActionRowBuilder().addComponents(emSel);
       let q, s;
 
       const replyPromise = new Promise((resolve, reject) => {
-        i.reply({ embeds: [re], components: [row] })
+        i.reply({ embeds: [re], components: [row, rowBut] })
           .then((msg) => {
-            function createMsgCompent() {
+            let collector;
+            function createMsgCompent(stop) {
               try {
                 const filter = (interaction) => {
                   if (
@@ -245,17 +266,16 @@ module.exports = class Manager {
                     );
                   }
                 };
-                const collector = i.channel.createMessageComponentCollector({
+                collector = i.channel.createMessageComponentCollector({
                   filter,
-                  time: 60000,
+                  time: 300000,
                 });
                 collector.on("collect", async (interaction) => {
-                  let submitted;
+                  let submitted, f;
                   try {
                     let fields;
                     switch (interaction.values[0]) {
                       case "title":
-                      case "description":
                       case "color":
                       case "image":
                       case "thumbnail":
@@ -267,6 +287,74 @@ module.exports = class Manager {
                             .setStyle(1)
                             .setRequired(true),
                         };
+                        createModal(interaction);
+                        break;
+                      case "description":
+                        fields = {
+                          name: new TextInputBuilder()
+                            .setCustomId(`${interaction.values[0]}`)
+                            .setLabel(`The description`)
+                            .setStyle(2)
+                            .setRequired(true),
+                        };
+                        createModal(interaction);
+                        break;
+                      case "field":
+                        fields = {
+                          name: new TextInputBuilder()
+                            .setCustomId(`name`)
+                            .setLabel(`The name of the field`)
+                            .setStyle(1)
+                            .setRequired(true),
+                          value: new TextInputBuilder()
+                            .setCustomId(`value`)
+                            .setLabel(`The value of the field`)
+                            .setStyle(2)
+                            .setRequired(true),
+                          inline: new TextInputBuilder()
+                            .setCustomId(`inline`)
+                            .setLabel(`Inline? (Y/True)`)
+                            .setStyle(1)
+                            .setRequired(false),
+                        };
+                        const feSel = new StringSelectMenuBuilder()
+                        .setCustomId("field_select")
+                        .setPlaceholder("Select field to edit or create a new one")
+                        .addOptions(
+                          new StringSelectMenuOptionBuilder()
+                            .setLabel("New Field")
+                            .setDescription("Create a new field")
+                            .setValue("_%$%new%$%_%$%field%$%_")
+                        );
+                    
+                      if (re.data.fields) {
+                        re.data.fields.forEach((field, index) => {
+                          feSel.addOptions(
+                            new StringSelectMenuOptionBuilder()
+                              .setLabel(field.name)
+                              .setDescription(`Edit this field [${index}]`)
+                              .setValue(`${field.name} ${index}`)
+                          );
+                        });
+                      }
+                    
+                      const ferow = new ActionRowBuilder().addComponents(feSel);
+                      const r = await interaction.reply({ components: [ferow], ephemeral: true });
+                    
+                      const filter2 = (i) => i.user.id === u.id && i.customId === "field_select";
+                      const collector2 = interaction.channel.createMessageComponentCollector({ filter2, time: 120000 });
+                    
+                      collector2.on("collect", async (fieldInteraction) => {
+                        const value = fieldInteraction.values[0].split(' ')[0];
+                        if (value === "_%$%new%$%_%$%field%$%_") {
+                          await createModal(fieldInteraction, "new field");
+                        } else {
+                          await createModal(fieldInteraction, fieldInteraction.values[0]);
+                        }
+                        r.delete()
+                        collector2.stop();
+                      });
+                    
                         break;
                       case "author":
                         fields = {
@@ -286,6 +374,7 @@ module.exports = class Manager {
                             .setStyle(1)
                             .setRequired(false),
                         };
+                        createModal(interaction);
                         break;
                       case "timestamp":
                         if (!re.data.timestamp) {
@@ -295,7 +384,7 @@ module.exports = class Manager {
                         }
                         q = re;
                         msg
-                          .edit({ embeds: [re], components: [row] })
+                          .edit({ embeds: [re], components: [row, rowBut] })
                           .then(() => {
                             createMsgCompent();
                           });
@@ -316,98 +405,183 @@ module.exports = class Manager {
                             .setStyle(1)
                             .setRequired(true),
                         };
+                        createModal(interaction);
                         break;
                     }
-                    const modal = new ModalBuilder()
-                      .setCustomId(`${interaction.values[0]}Modal`)
-                      .setTitle(
-                        `Customcommand: ${
-                          interaction.values[0].charAt(0).toUpperCase() +
-                          interaction.values[0].slice(1)
-                        }`
-                      );
-                    const keys = Object.keys(fields);
-                    if (fields) {
-                      keys.forEach((key) => {
-                        const modalrow = new ActionRowBuilder().addComponents(
-                          fields[key]
-                        ); // Don't need to convert to JSON
-                        modal.components.push(modalrow);
-                      });
-                    }
+                    async function createModal(interaction, field) {                
+                      const modal = new ModalBuilder()
+                        .setCustomId(`${interaction.values[0]}Modal`)
+                        .setTitle(
+                          `Customcommand: ${
+                            interaction.values[0].charAt(0).toUpperCase() +
+                            interaction.values[0].slice(1)
+                          }`
+                        );
+                        if (field) {modal.setCustomId(`fieldModal`)}
+                      const keys = Object.keys(fields);
+                      if (fields) {
+                        keys.forEach((key) => {
+                          const modalrow = new ActionRowBuilder().addComponents(
+                            fields[key]
+                          );
+                          modal.components.push(modalrow);
+                        });
+                      }
 
-                    try {
-                      await interaction.showModal(modal);
-                    } catch (err) {
-                      throw err;
-                    }
-                    submitted = await interaction
-                      .awaitModalSubmit({
-                        time: 60000,
-                        filter: (i) => i.user.id === interaction.user.id,
-                      })
-                      .catch((err) => {
+                      try {
+                        await interaction.showModal(modal);
+                      } catch (err) {
                         throw err;
-                      });
-                    if (!submitted) {
-                      return;
-                    }
-                    let nw;
-                    switch (interaction.values[0]) {
-                      case "title":
-                        nw = submitted.fields.getTextInputValue("title");
-                        re.setTitle(nw);
-                        break;
-                      case "description":
-                        nw = submitted.fields.getTextInputValue("description");
-                        re.setDescription(nw);
-                        break;
-                      case "author":
-                        re.setAuthor({
-                          name: submitted.fields.getTextInputValue("name"),
-                          iconURL: submitted.fields.getTextInputValue("icon"),
-                          url: submitted.fields.getTextInputValue("url"),
+                      }
+                      submitted = await interaction
+                        .awaitModalSubmit({
+                          time: 60000,
+                          filter: (i) => i.user.id === interaction.user.id,
+                        })
+                        .catch((err) => {
+                          throw err;
                         });
-                        break;
-                      case "color":
-                        nw = submitted.fields.getTextInputValue("color");
-                        try {
-                          re.setColor(nw);
-                        } catch (err) {
-                          submitted.reply({content: `Please provide a valid hex color code (\`${nw}\`)`, ephemeral: true});
-                          return;
+                      handleModal(submitted, interaction, field);
+                    }
+                    function handleModal(submitted, interaction, field) {
+                      if (!submitted) {
+                        return;
+                      }
+                      let nw;
+                      switch (interaction.values[0]) {
+                        case "title":
+                          nw = submitted.fields.getTextInputValue("title");
+                          re.setTitle(nw);
+                          break;
+                        case "description":
+                          nw =
+                            submitted.fields.getTextInputValue("description");
+                          re.setDescription(nw);
+                          break;
+                        case "author":
+                          if (submitted.fields && submitted.fields.getTextInputValue("icon").startsWith('http') && submitted.fields.getTextInputValue("url").startsWith('http')) {
+                            re.setAuthor({
+                              name: submitted.fields.getTextInputValue("name"),
+                              iconURL: submitted.fields.getTextInputValue("icon"),
+                              url: submitted.fields.getTextInputValue("url"),
+                            }); 
+                          } else if (submitted.fields && submitted.fields.getTextInputValue("icon").startsWith('http')) {
+                            re.setAuthor({
+                              name: submitted.fields.getTextInputValue("name"),
+                              iconURL: submitted.fields.getTextInputValue("icon"),
+                            }); 
+                          } else if (submitted.fields && submitted.fields.getTextInputValue("url").startsWith('http')) {
+                            re.setAuthor({
+                              name: submitted.fields.getTextInputValue("name"),
+                              url: submitted.fields.getTextInputValue("url"),
+                            }); 
+                          } else {
+                            re.setAuthor({
+                              name: submitted.fields.getTextInputValue("name"),
+                            });
+                          }
+                          break;
+                        case "color":
+                          nw = submitted.fields.getTextInputValue("color");
+                          try {
+                            re.setColor(nw);
+                          } catch (err) {
+                            submitted.reply({
+                              content: `Please provide a valid hex color code (\`${nw}\`)`,
+                              ephemeral: true,
+                            });
+                            return;
+                          }
+                          break;
+                        case "footer":
+                          if (submitted.fields && submitted.fields.getTextInputValue("icon").startsWith('http')) {
+                          re.setFooter({
+                            text: submitted.fields.getTextInputValue("name"),
+                            iconURL: submitted.fields.getTextInputValue("icon"),
+                          });
+                        } else {
+                          re.setFooter({
+                            text: submitted.fields.getTextInputValue("name"),
+                          });
                         }
-                        break;
-                      case "footer":
-                        re.setFooter({
-                          text: submitted.fields.getTextInputValue("name"),
-                          iconURL: submitted.fields.getTextInputValue("icon"),
-                        });
-                        break;
-                      case "image":
-                        nw = submitted.fields.getTextInputValue("image");
-                        re.setImage(nw);
-                        break;
+                          break;
+                        case "image":
+                          if (submitted.fields && submitted.fields.getTextInputValue("image").startsWith('http')) {
+                          nw = submitted.fields.getTextInputValue("image");
+                          re.setImage(nw);
+                          }
+                          break;
+                        case "thumbnail":
+                          if (submitted.fields && submitted.fields.getTextInputValue("thumbnail").startsWith('http')) {
+                          nw = submitted.fields.getTextInputValue("thumbnail");
+                          re.setThumbnail(nw);
+                          }
+                          break;
+                      }
+                      if (field) {
+                        if (field === 'new field') {
+                          if (
+                            (submitted.fields &&
+                              submitted.fields.getTextInputValue("inline") &&
+                              submitted.fields
+                                .getTextInputValue("inline")
+                                .toLowerCase() === "true") ||
+                            submitted.fields
+                              .getTextInputValue("inline")
+                              .toLowerCase() === "y"
+                          ) {
+                            re.addFields({
+                              name: submitted.fields.getTextInputValue("name"),
+                              value:
+                                submitted.fields.getTextInputValue("value"),
+                              inline: true,
+                            });
+                          } else {
+                            re.addFields({
+                              name: submitted.fields.getTextInputValue("name"),
+                              value:
+                                submitted.fields.getTextInputValue("value"),
+                            });
+                          }
+                        } else {
+                          re.data.fields[field.split(' ')[1]]
+                          if (
+                            (submitted.fields &&
+                              submitted.fields.getTextInputValue("inline") &&
+                              submitted.fields
+                                .getTextInputValue("inline")
+                                .toLowerCase() === "true") ||
+                            submitted.fields
+                              .getTextInputValue("inline")
+                              .toLowerCase() === "y"
+                          ) {
+                            console.log(re, re.data, re.data.fields[parseInt(field.split(' ')[1])])                      
+                            re.data.fields[parseInt(field.split(' ')[1])].name = submitted.fields.getTextInputValue("name");
+                            re.data.fields[parseInt(field.split(' ')[1])].value = submitted.fields.getTextInputValue("value");
+                            re.data.fields[parseInt(field.split(' ')[1])].inline = true;
+                          } else {
+                            re.data.fields[parseInt(field.split(' ')[1])].name = submitted.fields.getTextInputValue("name");
+                            re.data.fields[parseInt(field.split(' ')[1])].value = submitted.fields.getTextInputValue("value");
+                            re.data.fields[parseInt(field.split(' ')[1])].inline = false;
+                          }
+                        }}
+                      q = re;
+                      msg.edit({ embeds: [re], components: [row, rowBut] }).then(() => {
+                        createMsgCompent();
+                      });
+                      submitted.deferUpdate();
+                      s = true;
+                      collector.stop();
+                      resolve();
                     }
-                    q = re;
-                    msg.edit({ embeds: [re], components: [row] }).then(() => {
-                      createMsgCompent();
-                    });
-                    submitted.deferUpdate();
-                    s = true;
-                    collector.stop();
-                    resolve();
                   } catch (err) {
                     reject(err);
-                    if (!submitted.deferred || !submitted.replied) {
-                      await submitted.deferUpdate();
-                    }
                   }
                 });
-
                 collector.on("end", () => {
                   if (!s) {
                     msg.edit({ components: [] });
+                    collectorBut.stop()
                     resolve();
                   } else {
                     s = false;
@@ -418,13 +592,42 @@ module.exports = class Manager {
               }
             }
             createMsgCompent();
+            const filterBut = (interaction) => {
+              if (interaction.isButton() && interaction.message.interaction) {
+                return (
+                  interaction.isButton() &&
+                  interaction.message.interaction.id === msg.interaction.id &&
+                  interaction.user.id === u.id
+                );
+              } else {
+                return (
+                  interaction.isButton() &&
+                  interaction.message.id === msg.id &&
+                  interaction.user.id === u.id
+                );
+              }
+            };
+            const collectorBut = i.channel.createMessageComponentCollector({
+              filterBut,
+              time: 1800000,
+            });
+            collectorBut.on("collect", async (interaction) => {
+              if (interaction.customId === "delbut") {
+                collector.stop();
+                interaction.reply('Cancelled the making of a new custom command')
+              } else if (interaction.customId === "crbut") {
+                collector.stop()
+                interaction.reply('Made a new custom command')
+                c.data.createCustomCommand(i.guild, q)
+              } else if (interaction.customId === "setbut") {
+                collector.stop()
+              }
+            });
           })
           .catch((err) => {
             reject(err);
           });
       });
-
-      // Return the replyPromise to allow chaining or awaiting
       return replyPromise.catch((err) => {
         throw err;
       });
