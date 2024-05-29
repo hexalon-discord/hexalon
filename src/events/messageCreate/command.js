@@ -1,5 +1,19 @@
 const { EmbedBuilder, DiscordAPIError } = require("discord.js");
-const bugsy = require('bugsy');
+let b, c=0;
+function getBugsy() {
+  if (c > 10) {return;}
+  try {
+    b = require('bugsy');
+  } catch (err) {
+    require('../.././utils/logger').error(err)
+  }
+  if (!b) {
+    c++
+    getBugsy()
+  }
+}
+getBugsy()
+const bugsy = b
 const config = require('../../config/config');
 const dotenv = require('dotenv');
 const fs = require('fs')
