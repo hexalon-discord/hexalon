@@ -320,6 +320,162 @@
         "content": "test"
       },
       "embed": {}
+    },
+    {
+      "name": "asd",
+      "id": "DMNDyR3P7N7ElJXU",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1233447885794967636"
+      },
+      "created": {
+        "time": 1716991731051,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": null
+      },
+      "embed": {}
+    },
+    {
+      "name": "asd",
+      "id": "mTySFSQUFng08vqj",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1233447885794967636"
+      },
+      "created": {
+        "time": 1716991831888,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": null
+      },
+      "embed": {}
+    },
+    {
+      "name": "asd",
+      "id": "sARTTN8K11gHJtOD",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1233447885794967636"
+      },
+      "created": {
+        "time": 1716991893905,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": null
+      },
+      "embed": {}
+    },
+    {
+      "name": "asd",
+      "id": "PnPc8a9DDR3NiZte",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1233447885794967636"
+      },
+      "created": {
+        "time": 1716991980073,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": null
+      },
+      "embed": {}
+    },
+    {
+      "name": "546757785",
+      "id": "t0VB2Brd0irpuf7p",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1233447885794967636"
+      },
+      "created": {
+        "time": 1716992391377,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": null
+      },
+      "embed": {}
+    },
+    {
+      "name": "ads",
+      "id": "OqEFfELTopVL1pDx",
+      "enabled": true,
+      "delete_trigger": true,
+      "reply": {
+        "dreply": false,
+        "channel": "1233447885794967636"
+      },
+      "created": {
+        "time": 1716992435878,
+        "user": "872110981835268096"
+      },
+      "require": {
+        "channels": [],
+        "roles": []
+      },
+      "ignore": {
+        "channels": [],
+        "roles": []
+      },
+      "message": {
+        "content": null
+      },
+      "embed": {}
     }
   ],
   "moderations": [

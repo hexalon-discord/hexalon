@@ -208,13 +208,26 @@ module.exports = class DataHandler {
     }
     static createCustomCommand(guild, data) {
         return new Promise((resolve, reject) => {
-            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', (err, datajson) => {
+            fs.readFile(`src/data/guildData/${guild.id}.json`, 'utf8', async (err, datajson) => {
                 if (err) {
                     reject(err);
                     return;
                 }
                 try {
-                    console.log(data)
+                    const cCmds = await this.getAllCustomCommands(guild)
+                    let nameExists = false;
+
+                    for (const cmd of cCmds) {
+                        if (cmd.name.toLowerCase() === data.main.name.toLowerCase()) {
+                            nameExists = true;
+                            break;
+                        }
+                    }
+                    if (nameExists) {
+                        resolve('Name already in use.');
+                        console.log('rejected')
+                        return;
+                    }
                     let comId = '';
                     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                     const charactersLength = characters.length;
@@ -268,7 +281,6 @@ module.exports = class DataHandler {
                       };
                     const guildFile = JSON.parse(datajson);
                     guildFile.customCommands.push(newCommand);
-                    console.log(guildFile, newCommand)
                     fs.writeFile(`src/data/guildData/${guild.id}.json`, JSON.stringify(guildFile, null, 2), (err) => {
                         if (err) {
                             reject(err);

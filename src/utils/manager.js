@@ -16,8 +16,6 @@ const config = require("../config/config");
 const fs = require("fs");
 const path = require("path");
 const os = require("os-utils");
-const { create } = require("domain");
-const { subscribe } = require("diagnostics_channel");
 
 let page = 0;
 module.exports = class Manager {
@@ -88,7 +86,7 @@ module.exports = class Manager {
         .setStyle(ButtonStyle.Success);
 
       const dlb = new ButtonBuilder()
-        .setCustomId("delbut")
+        .setCustomId("delccbut")
         .setEmoji(`🗑️`)
         //.setEmoji({
         //  name: 'trash',
@@ -174,10 +172,16 @@ module.exports = class Manager {
                   if (er) {
                     reject(err);
                   }
-                } else if (interaction.customId === "delbut") {
-                  this.deleteCustomCommand(c, i, u);
+                } else if (interaction.customId === "delccbut") {
                   collector.stop();
-                  await interaction.deferUpdate();
+                  console.log(1);
+                  const er = await this.deleteCustomCommand(c, interaction, u);
+                  if (er) {
+                    reject(err);
+                    try {
+                      interaction.deferUpdate();
+                    } catch (err) {}
+                  }
                 } else if (interaction.customId === "editbut") {
                   this.editCustomCommand(c, i, u);
                   collector.stop();
@@ -324,13 +328,14 @@ module.exports = class Manager {
         .setCustomId("createbut")
         .setEmoji(`➕`)
         .setLabel(`Create`)
-        .setStyle(ButtonStyle.Success);
-
+        .setStyle(ButtonStyle.Success)
+        .setDisabled(false);
       const dlb = new ButtonBuilder()
         .setCustomId("delbut")
         .setEmoji(`🗑️`)
         .setLabel(`Cancel`)
-        .setStyle(ButtonStyle.Danger);
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(false);
       const set = new ButtonBuilder()
         .setCustomId("setbut")
         .setEmoji(`⚙️`)
@@ -373,7 +378,7 @@ module.exports = class Manager {
       const re = new EmbedBuilder().setDescription("_ _");
       const row = new ActionRowBuilder().addComponents(emSel);
 
-      let s;
+      let s, debMsgSel;
       const replyPromise = new Promise((resolve, reject) => {
         i.reply({ content: "_ _", components: [rowBut] })
           .then((msg) => {
@@ -403,7 +408,8 @@ module.exports = class Manager {
                   filter,
                   time: 300000,
                 });
-                collector.on("collect", async (interaction) => {
+
+               collector.on("collect", async (interaction) => {
                   let submitted, f;
                   try {
                     let fields;
@@ -816,7 +822,6 @@ module.exports = class Manager {
               }
             }
             function createButCompent() {
-              console.log(1, "buttons");
               const filterBut = (interaction) => {
                 if (interaction.isButton() && interaction.message.interaction) {
                   return (
@@ -837,39 +842,60 @@ module.exports = class Manager {
                 time: 1800000,
               });
               collectorBut.on("collect", async (butInteraction) => {
-                console.log(2, "buttons");
                 try {
                   if (!deb) {
                     deb = true;
                     ms = true;
-                    collectorBut.stop();
                     if (butInteraction.customId === "delbut") {
-                      if (collector) {
-                        collector.stop();
-                        collectorBut.stop();
-                      }
-                      butInteraction.reply(
-                        "Cancelled the making of a new custom command"
-                      );
-                    } else if (butInteraction.customId === "createbut") {
                       try {
+                        ms = false;
+                        collectorBut.stop();
                         if (collector) {
                           collector.stop();
                         }
-                        butInteraction.reply("Made a new custom command");
+                        butInteraction.reply(
+                          "Cancelled the making of a new custom command"
+                        );
+                        return;
+                      } catch (err) {
+                        reject(err);
+                        return;
+                      }
+                    } else if (butInteraction.customId === "createbut") {
+                      try {
                         const er = await c.data.createCustomCommand(
                           butInteraction.guild,
                           q
                         );
                         if (er) {
-                          reject(er);
+                          if (er === "Name already in use.") {
+                            await butInteraction.reply({
+                              content:
+                                "This name is already in use, try renaming the command.",
+                              ephemeral: true,
+                            });
+                          } else {
+                            reject(er);
+                          }
+                        } else {
+                          ms = false;
+                          collectorBut.stop();
+                          if (collector) {
+                            collector.stop();
+                          }
+                          await butInteraction.reply(
+                            "Made a new custom command"
+                          );
+                          return;
                         }
                       } catch (err) {
                         reject(err);
+                        return;
                       }
                     } else if (butInteraction.customId === "setbut") {
                       async function createSetCompent(interaction, u) {
                         try {
+                          collectorBut.stop();
                           em = true;
                           const setrow = new ActionRowBuilder().addComponents(
                             setSel
@@ -1238,31 +1264,43 @@ module.exports = class Manager {
                             return;
                           }
                           reject(err);
+                          return;
                         }
                       }
                       createSetCompent(butInteraction, u);
                     } else if (butInteraction.customId === "embbut") {
-                      console.log(1);
-                      msg.edit({
-                        content: msg.content,
-                        embeds: [re],
-                        components: [row, rowBut2],
-                      });
-                      createMsgCompent();
-                      butInteraction.deferUpdate();
+                      try {
+                        collectorBut.stop();
+                        msg.edit({
+                          content: msg.content,
+                          embeds: [re],
+                          components: [row, rowBut2],
+                        });
+                        createMsgCompent();
+                        butInteraction.deferUpdate();
+                      } catch (err) {
+                        reject(err);
+                        return;
+                      }
                     } else if (butInteraction.customId === "delembbut") {
-                      console.log(1);
-                      em = false;
-                      msg.edit({
-                        content: msg.content,
-                        embeds: [],
-                        components: [rowBut],
-                      });
-                      q.embed = {};
-                      collector.stop();
-                      butInteraction.deferUpdate();
+                      try {
+                        collectorBut.stop();
+                        em = false;
+                        msg.edit({
+                          content: msg.content,
+                          embeds: [],
+                          components: [rowBut],
+                        });
+                        q.embed = {};
+                        collector.stop();
+                        butInteraction.deferUpdate();
+                      } catch (err) {
+                        reject(err);
+                        return;
+                      }
                     } else if (butInteraction.customId === "msgbut") {
                       try {
+                        collectorBut.stop();
                         const fields = {
                           content: new TextInputBuilder()
                             .setCustomId(`content`)
@@ -1311,6 +1349,7 @@ module.exports = class Manager {
                           return;
                         }
                         reject(err);
+                        return;
                       }
                     }
                     createButCompent();
@@ -1321,11 +1360,11 @@ module.exports = class Manager {
                 }
               });
               collectorBut.on("end", () => {
-                console.log(3, "buttons");
                 if (!ms) {
+                  if (collector) {
+                    collector.stop();
+                  }
                   msg.edit({ components: [] });
-                  collector.stop();
-                  console.log(4, "buttons");
                   resolve();
                 } else {
                   ms = false;
@@ -1336,6 +1375,7 @@ module.exports = class Manager {
           })
           .catch((err) => {
             reject(err);
+            return;
           });
       });
       return replyPromise.catch((err) => {
@@ -1348,6 +1388,44 @@ module.exports = class Manager {
 
   static async deleteCustomCommand(c, i, u) {
     try {
+      const allCommands = c.data.getAllCustomCommands(i.guild);
+      const deSel = new StringSelectMenuBuilder()
+        .setCustomId("del_select")
+        .setPlaceholder("Select the command to delete");
+      if (allCommands && allCommands[0]) {
+        allCommands.forEach((cmd, index) => {
+          deSel.addOptions(
+            new StringSelectMenuOptionBuilder()
+              .setLabel(cmd.name)
+              .setDescription(
+                `Delete the custom command "${cmd.name}" | ${cmd.id}`
+              )
+              .setValue(`${cmd.id}|${index}`)
+          );
+        });
+        const delRow = new ActionRowBuilder().addComponents(deSel);
+        const r = await i.reply({
+          components: [delRow],
+          ephemeral: true,
+        });
+
+        const filter2 = (i) =>
+          i.user.id === u.id && i.customId === "del_select";
+        const collector2 = interaction.channel.createMessageComponentCollector({
+          filter2,
+          time: 120000,
+        });
+
+        collector2.on("collect", async (ccToDelInter) => {
+          const tDA = ccToDelInter.values[0].split("|");
+          const tDID = tDA[0];
+          const tDI = tDA[1];
+          if (allCommands[tDI].id.toString() === tDID.toString()) {
+            r.delete();
+            collector2.stop();
+          }
+        });
+      }
     } catch (err) {
       return err;
     }
